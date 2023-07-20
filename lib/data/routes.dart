@@ -5,5 +5,5 @@ import '../Views/MainViews/main_view.dart';
 
 final Map<String, WidgetBuilder> routes = {
   MainView.routeName: (context) => const MainView(),
-  MenuView.routeName: (context) => const MenuView()
+  MenuView.routeName: (context) => const MenuView(),
 };

@@ -37,8 +37,7 @@ class _MenuViewState extends State<MenuView> {
       appBar: AppBar(
         title: const AutoSizeText(
           "UFOFOOD",
-          style:
-              TextStyle(color: kSecondaryColor, fontWeight: FontWeight.w900),
+          style: TextStyle(color: kSecondaryColor, fontWeight: FontWeight.w900),
         ),
         centerTitle: true,
       ),
@@ -54,7 +53,43 @@ class _MenuViewState extends State<MenuView> {
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.done) {
                   if (snapshot.hasError) {
-                    return const Text('Ошибка при загрузке продуктов');
+                    return const Center(
+                      child: Column(
+                        children: [
+                          SizedBox(
+                            height: 220,
+                          ),
+                          Icon(
+                            Icons.wifi_off_outlined,
+                            size: 100,
+                            color: Colors.red,
+                          ),
+                          SizedBox(
+                            height: 10,
+                          ),
+                          AutoSizeText(
+                            "Нет соединения",
+                            style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: kTextColor),
+                          ),
+                          SizedBox(
+                            height: 10,
+                          ),
+                          AutoSizeText(
+                            "Проверьте соединение с сетью и обновите страницу",
+                            style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w400,
+                                color: kTextColor),
+                          ),
+                          SizedBox(
+                            height: 10,
+                          ),
+                        ],
+                      ),
+                    );
                   } else {
                     return Expanded(
                         child: ListView.builder(

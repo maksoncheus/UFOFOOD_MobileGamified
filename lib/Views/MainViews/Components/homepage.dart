@@ -4,6 +4,7 @@ import 'package:sidebarx/sidebarx.dart';
 import 'package:ufo_food/Model/product.dart';
 import 'package:ufo_food/Views/MainViews/main_view.dart';
 import 'package:ufo_food/Views/MenuViews/menu_view.dart';
+import 'package:ufo_food/Views/ProductViews/product_view.dart';
 import 'package:ufo_food/data/constants.dart';
 import 'package:ufo_food/helper/product_data.dart';
 
@@ -50,105 +51,150 @@ class _HomePageState extends State<HomePage> {
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.done) {
                   if (snapshot.hasError) {
-                    return const Text('Ошибка при загрузке продуктов');
+                    return const Center(
+                      child: Column(
+                        children: [
+                          SizedBox(
+                            height: 220,
+                          ),
+                          Icon(
+                            Icons.wifi_off_outlined,
+                            size: 100,
+                            color: Colors.red,
+                          ),
+                          SizedBox(
+                            height: 10,
+                          ),
+                          AutoSizeText(
+                            "Нет соединения",
+                            style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: kTextColor),
+                          ),
+                          SizedBox(
+                            height: 10,
+                          ),
+                          AutoSizeText(
+                            "Проверьте соединение с сетью и обновите страницу",
+                            style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w400,
+                                color: kTextColor),
+                          ),
+                          SizedBox(
+                            height: 10,
+                          ),
+                        ],
+                      ),
+                    );
                   } else {
                     return Expanded(
                       child: ListView.builder(
                         itemCount: products.length,
                         itemBuilder: (context, index) {
-                          return Container(
-                            margin: const EdgeInsets.symmetric(
-                                vertical: 20, horizontal: 20),
-                            width: double.infinity,
-                            height: 250,
-                            decoration: BoxDecoration(
-                                boxShadow: const [
-                                  BoxShadow(
-                                      color: Color.fromRGBO(0, 0, 0, 0.25),
-                                      blurRadius: 10,
-                                      spreadRadius: 5,
-                                      blurStyle: BlurStyle.inner)
-                                ],
-                                borderRadius: BorderRadius.circular(20),
-                                color: kPrimaryColor),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: <Widget>[
-                                Stack(
-                                  children: <Widget>[
-                                    Container(
-                                      alignment: Alignment.topCenter,
-                                      height: 150,
-                                      decoration: BoxDecoration(
-                                          borderRadius:
-                                              BorderRadius.circular(20),
-                                          image: const DecorationImage(
-                                              image: AssetImage(
-                                                  "assets/images/ufoburger3.png"),
-                                              fit: BoxFit.fill)),
-                                    )
+                          return GestureDetector(
+                            onTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      ProductView(product: products[index]),
+                                )),
+                            child: Container(
+                              margin: const EdgeInsets.symmetric(
+                                  vertical: 20, horizontal: 20),
+                              width: double.infinity,
+                              height: 250,
+                              decoration: BoxDecoration(
+                                  boxShadow: const [
+                                    BoxShadow(
+                                        color: Color.fromRGBO(0, 0, 0, 0.25),
+                                        blurRadius: 10,
+                                        spreadRadius: 5,
+                                        blurStyle: BlurStyle.inner)
                                   ],
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.only(
-                                      left: 5, top: 5, bottom: 1),
-                                  child: AutoSizeText(
-                                    products[index].title,
-                                    style: const TextStyle(
-                                        fontSize: 18,
-                                        color: kTextColor,
-                                        fontWeight: FontWeight.bold),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                Padding(
-                                  padding:
-                                      const EdgeInsets.only(left: 5, top: 1),
-                                  child: AutoSizeText(
-                                    products[index].description,
-                                    style: const TextStyle(
-                                        fontSize: 16,
-                                        color: kTextColor,
-                                        fontWeight: FontWeight.normal),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.only(
-                                      left: 5, top: 1, right: 5),
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        child: AutoSizeText(
-                                          "${products[index].price} руб",
-                                          style: const TextStyle(
-                                              fontSize: 16,
-                                              color: kSecondaryColor,
-                                              fontWeight: FontWeight.normal),
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                      Expanded(
-                                        child: Align(
-                                          alignment: Alignment.bottomRight,
-                                          child: TextButton(
-                                              style: const ButtonStyle(
-                                                backgroundColor:
-                                                    MaterialStatePropertyAll<
-                                                        Color>(kSecondaryColor),
-                                              ),
-                                              onPressed: () {},
-                                              child: const AutoSizeText(
-                                                "Купить",
-                                                style: TextStyle(
-                                                    color: Colors.white),
-                                              )),
-                                        ),
-                                      ),
+                                  borderRadius: BorderRadius.circular(20),
+                                  color: kPrimaryColor),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: <Widget>[
+                                  Stack(
+                                    children: <Widget>[
+                                      Container(
+                                        alignment: Alignment.topCenter,
+                                        height: 150,
+                                        decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(20),
+                                            image: const DecorationImage(
+                                                image: AssetImage(
+                                                    "assets/images/ufoburger3.png"),
+                                                fit: BoxFit.fill)),
+                                      )
                                     ],
                                   ),
-                                )
-                              ],
+                                  Padding(
+                                    padding: const EdgeInsets.only(
+                                        left: 5, top: 5, bottom: 1),
+                                    child: AutoSizeText(
+                                      products[index].title,
+                                      style: const TextStyle(
+                                          fontSize: 18,
+                                          color: kTextColor,
+                                          fontWeight: FontWeight.bold),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding:
+                                        const EdgeInsets.only(left: 5, top: 1),
+                                    child: AutoSizeText(
+                                      products[index].description,
+                                      style: const TextStyle(
+                                          fontSize: 16,
+                                          color: kTextColor,
+                                          fontWeight: FontWeight.normal),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.only(
+                                        left: 5, top: 1, right: 5),
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          child: AutoSizeText(
+                                            "${products[index].price} руб",
+                                            style: const TextStyle(
+                                                fontSize: 16,
+                                                color: kSecondaryColor,
+                                                fontWeight: FontWeight.normal),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                        Expanded(
+                                          child: Align(
+                                            alignment: Alignment.bottomRight,
+                                            child: TextButton(
+                                                style: const ButtonStyle(
+                                                  backgroundColor:
+                                                      MaterialStatePropertyAll<
+                                                              Color>(
+                                                          kSecondaryColor),
+                                                ),
+                                                onPressed: () {},
+                                                child: const AutoSizeText(
+                                                  "Купить",
+                                                  style: TextStyle(
+                                                      color: Colors.white),
+                                                )),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  )
+                                ],
+                              ),
                             ),
                           );
                         },
