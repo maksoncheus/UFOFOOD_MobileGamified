@@ -4,6 +4,7 @@ import 'package:sidebarx/sidebarx.dart';
 import 'package:ufo_food/Model/product.dart';
 import 'package:ufo_food/Views/MainViews/main_view.dart';
 import 'package:ufo_food/Views/MenuViews/menu_view.dart';
+import 'package:ufo_food/Views/PhoneCheckerView/phone_checker.dart';
 import 'package:ufo_food/Views/ProductViews/product_view.dart';
 import 'package:ufo_food/data/constants.dart';
 import 'package:ufo_food/helper/product_data.dart';
@@ -185,6 +186,7 @@ class _HomePageState extends State<HomePage> {
                                                 onPressed: () {},
                                                 child: const AutoSizeText(
                                                   "Купить",
+                                                  maxLines: 1,
                                                   style: TextStyle(
                                                       color: Colors.white),
                                                 )),
@@ -329,6 +331,10 @@ class SideBarExample extends StatelessWidget {
             icon: Icons.category_outlined,
             label: 'Меню',
             onTap: () => Navigator.pushNamed(context, MenuView.routeName)),
+        SidebarXItem(
+            icon: Icons.phone_android_outlined,
+            label: 'Телефон',
+            onTap: () => Navigator.pushNamed(context, PhoneChecker.routeName)),
         SidebarXItem(
             icon: Icons.shopping_basket_outlined,
             label: 'Корзина',

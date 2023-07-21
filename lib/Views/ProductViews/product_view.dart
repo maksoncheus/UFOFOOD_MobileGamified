@@ -23,6 +23,21 @@ class ProductView extends StatefulWidget {
 
 class _ProductViewState extends State<ProductView> {
   final _controller = SidebarXController(selectedIndex: 0, extended: true);
+  List<int> counter = [0, 0, 0, 0, 0];
+
+  void incrementCount(int index) {
+    setState(() {
+      counter[index]++;
+    });
+  }
+
+  void decrementCount(int index) {
+    if (counter[index] > 0) {
+      setState(() {
+        counter[index]--;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -126,11 +141,11 @@ class _ProductViewState extends State<ProductView> {
                         SizedBox(
                           height: getProportionateScreenHeight(5),
                         ),
-                        addIgredients("Капуста"),
-                        addIgredients("Морковь"),
-                        addIgredients("Укроп"),
-                        addIgredients("Халапеньо"),
-                        addIgredients("Котлета"),
+                        addIgredients("Капуста", counter[0]),
+                        addIgredients("Морковь", counter[1]),
+                        addIgredients("Укроп ", counter[2]),
+                        addIgredients("Халапеньо", counter[3]),
+                        addIgredients("Котлета", counter[4]),
                       ],
                     ),
                   ),
@@ -158,7 +173,7 @@ class _ProductViewState extends State<ProductView> {
     );
   }
 
-  Stack addIgredients(String name) {
+  Stack addIgredients(String name, int index) {
     return Stack(
       children: [
         Container(
@@ -170,13 +185,16 @@ class _ProductViewState extends State<ProductView> {
           color: Colors.white,
           child: Row(
             children: <Widget>[
-              const Expanded(
+              Expanded(
                 child: Align(
                   alignment: Alignment.centerLeft,
-                  child: Icon(
-                    Icons.remove_circle_outline,
-                    size: 20,
-                    color: kSecondaryColor,
+                  child: GestureDetector(
+                    onTap: () {},
+                    child: const Icon(
+                      Icons.remove_circle_outline,
+                      size: 20,
+                      color: kSecondaryColor,
+                    ),
                   ),
                 ),
               ),
@@ -191,13 +209,16 @@ class _ProductViewState extends State<ProductView> {
                 minFontSize: 14,
                 textAlign: TextAlign.center,
               ))),
-              const Expanded(
+              Expanded(
                 child: Align(
                   alignment: Alignment.centerRight,
-                  child: Icon(
-                    Icons.add_circle_outlined,
-                    size: 20,
-                    color: kSecondaryColor,
+                  child: GestureDetector(
+                    onTap: () => {},
+                    child: const Icon(
+                      Icons.add_circle_outlined,
+                      size: 20,
+                      color: kSecondaryColor,
+                    ),
                   ),
                 ),
               ),
