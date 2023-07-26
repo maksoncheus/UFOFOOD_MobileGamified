@@ -6,8 +6,10 @@ import 'package:sidebarx/sidebarx.dart';
 import 'package:ufo_food/Model/product.dart';
 import 'package:ufo_food/data/constants.dart';
 import 'package:ufo_food/data/size_config.dart';
+import 'package:ufo_food/helper/product_data.dart';
 
 import '../MainViews/Components/homepage.dart';
+import '../MainViews/Components/title_category.dart';
 
 class ProductView extends StatefulWidget {
   const ProductView({
@@ -23,20 +25,20 @@ class ProductView extends StatefulWidget {
 
 class _ProductViewState extends State<ProductView> {
   final _controller = SidebarXController(selectedIndex: 0, extended: true);
-  List<int> counter = [0, 0, 0, 0, 0];
 
-  void incrementCount(int index) {
-    setState(() {
-      counter[index]++;
-    });
+  List<IngredientResponseProduct> ingredients = [];
+  int ingredientCounts = 0;
+
+  getIngredient() async {
+    IngredientProduct ingredientsdata = IngredientProduct();
+    await ingredientsdata.getIngredient();
+    ingredients = ingredientsdata.datatosave;
   }
 
-  void decrementCount(int index) {
-    if (counter[index] > 0) {
-      setState(() {
-        counter[index]--;
-      });
-    }
+  @override
+  void initState() {
+    super.initState();
+    getIngredient();
   }
 
   @override
@@ -58,65 +60,8 @@ class _ProductViewState extends State<ProductView> {
         child: SingleChildScrollView(
           child: Column(
             children: <Widget>[
-              AutoSizeText(
-                widget.product.title,
-                style: const TextStyle(
-                    color: kSecondaryColor,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(
-                height: 10,
-              ),
-              Container(
-                margin:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-                width: double.infinity,
-                height: 250,
-                decoration: BoxDecoration(
-                    boxShadow: const [
-                      BoxShadow(
-                          color: Color.fromRGBO(0, 0, 0, 0.25),
-                          blurRadius: 10,
-                          spreadRadius: 5,
-                          blurStyle: BlurStyle.inner)
-                    ],
-                    borderRadius: BorderRadius.circular(20),
-                    color: kPrimaryColor),
-                child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Stack(
-                        children: <Widget>[
-                          Container(
-                            alignment: Alignment.topCenter,
-                            height: 150,
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(20),
-                                image: const DecorationImage(
-                                    image: AssetImage(
-                                        "assets/images/ufoburger3.png"),
-                                    fit: BoxFit.fill)),
-                          )
-                        ],
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(top: 20),
-                        child: Center(
-                          child: AutoSizeText(
-                            widget.product.description,
-                            maxLines: 3,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                                fontSize: 16,
-                                color: kTextColor,
-                                fontWeight: FontWeight.normal),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ),
-                    ]),
-              ),
+              titleCategory(widget.product.title),
+              imageView(),
               Container(
                 margin: EdgeInsets.symmetric(
                     horizontal: getProportionateScreenWidth(20),
@@ -125,31 +70,50 @@ class _ProductViewState extends State<ProductView> {
                 height: getProportionateScreenHeight(360),
                 color: Colors.white,
                 child: Padding(
-                  padding: EdgeInsets.symmetric(
-                      vertical: getProportionateScreenHeight(10),
-                      horizontal: getProportionateScreenWidth(50)),
-                  child: SingleChildScrollView(
-                    child: Column(
-                      children: <Widget>[
-                        const AutoSizeText(
-                          "Вы можете добавить:",
-                          style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black),
-                        ),
-                        SizedBox(
-                          height: getProportionateScreenHeight(5),
-                        ),
-                        addIgredients("Капуста", counter[0]),
-                        addIgredients("Морковь", counter[1]),
-                        addIgredients("Укроп ", counter[2]),
-                        addIgredients("Халапеньо", counter[3]),
-                        addIgredients("Котлета", counter[4]),
-                      ],
-                    ),
-                  ),
-                ),
+                    padding: EdgeInsets.symmetric(
+                        vertical: getProportionateScreenHeight(10),
+                        horizontal: getProportionateScreenWidth(50)),
+                    child: FutureBuilder(
+                      future: getIngredient(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.done) {
+                          if (snapshot.hasError) {
+                            return errorToConnect();
+                          } else {
+                            return Container(
+                              height: 249,
+                              width: 312,
+                              color: Colors.white,
+                              child: Column(
+                                children: [
+                                  const Center(
+                                      child: AutoSizeText(
+                                    "Вы можете добавить:",
+                                    maxLines: 1,
+                                    style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold),
+                                  )),
+                                  Expanded(
+                                    child: ListView.builder(
+                                        itemCount: ingredients.length,
+                                        itemBuilder: (context, index) {
+                                          if (ingredients[index].categoryId ==
+                                              widget.product.categoryId) {
+                                            return ingredientsView(index);
+                                          }
+                                          return null;
+                                        }),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }
+                        } else {
+                          return const CircularProgressIndicator();
+                        }
+                      },
+                    )),
               ),
               TextButton(
                   onPressed: () {},
@@ -173,59 +137,124 @@ class _ProductViewState extends State<ProductView> {
     );
   }
 
-  Stack addIgredients(String name, int index) {
+  Stack ingredientsView(int index) {
     return Stack(
       children: [
         Container(
-          margin: EdgeInsets.symmetric(
-              horizontal: getProportionateScreenWidth(20),
-              vertical: getProportionateScreenHeight(5)),
-          height: getProportionateScreenHeight(50),
-          width: getProportionateScreenWidth(220),
-          color: Colors.white,
-          child: Row(
-            children: <Widget>[
-              Expanded(
-                child: Align(
+            margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+            height: 50,
+            width: 220,
+            child: Row(
+              children: [
+                Align(
                   alignment: Alignment.centerLeft,
                   child: GestureDetector(
-                    onTap: () {},
+                    onTap: () {
+                      setState(() {
+                        if (ingredientCounts != 0) {
+                          ingredientCounts--;
+                        }
+                      });
+                    },
                     child: const Icon(
                       Icons.remove_circle_outline,
-                      size: 20,
+                      size: 30,
                       color: kSecondaryColor,
                     ),
                   ),
                 ),
-              ),
-              Expanded(
+                Expanded(
                   child: Center(
-                      child: AutoSizeText(
-                name,
-                style:
-                    const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                wrapWords: false,
-                maxLines: 1,
-                minFontSize: 14,
-                textAlign: TextAlign.center,
-              ))),
-              Expanded(
-                child: Align(
+                    child:
+                        Text('${ingredients[index].title}:$ingredientCounts'),
+                  ),
+                ),
+                Align(
                   alignment: Alignment.centerRight,
                   child: GestureDetector(
-                    onTap: () => {},
+                    onTap: () {
+                      setState(() {
+                        ingredientCounts++;
+                      });
+                    },
                     child: const Icon(
-                      Icons.add_circle_outlined,
-                      size: 20,
+                      Icons.add_circle_outline,
+                      size: 30,
                       color: kSecondaryColor,
                     ),
                   ),
-                ),
-              ),
-            ],
-          ),
-        )
+                )
+              ],
+            ))
       ],
     );
+  }
+
+  Center errorToConnect() {
+    return const Center(
+      child: Column(
+        children: [
+          SizedBox(
+            height: 220,
+          ),
+          Icon(
+            Icons.wifi_off_outlined,
+            size: 100,
+            color: Colors.red,
+          ),
+          SizedBox(
+            height: 10,
+          ),
+          AutoSizeText(
+            "Нет соединения",
+            style: TextStyle(
+                fontSize: 18, fontWeight: FontWeight.bold, color: kTextColor),
+          ),
+          SizedBox(
+            height: 10,
+          ),
+          AutoSizeText(
+            "Проверьте соединение с сетью и обновите страницу",
+            style: TextStyle(
+                fontSize: 14, fontWeight: FontWeight.w400, color: kTextColor),
+          ),
+          SizedBox(
+            height: 10,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Column imageView() {
+    return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Stack(
+            children: <Widget>[
+              Container(
+                margin:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                alignment: Alignment.topCenter,
+                height: 150,
+                decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(6),
+                    image: const DecorationImage(
+                        image: AssetImage("assets/images/ufoburger3.png"),
+                        fit: BoxFit.fill)),
+              )
+            ],
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+            child: AutoSizeText(
+              widget.product.description,
+              maxLines: 3,
+              style: const TextStyle(
+                  fontSize: 12, color: kTextColor, fontWeight: FontWeight.w400),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ]);
   }
 }
