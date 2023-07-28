@@ -1,36 +1,51 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sidebarx/sidebarx.dart';
 import 'package:ufo_food/Model/product.dart';
-import 'package:ufo_food/Views/ProfileView/profile_view.dart';
+import 'package:ufo_food/Views/ProfileView/my_profile.dart';
+import 'package:ufo_food/data/auth.dart';
 import 'package:ufo_food/data/size_config.dart';
 
 import '../../data/constants.dart';
 import '../../helper/product_data.dart';
 import '../MainViews/Components/homepage.dart';
 
+// ignore: must_be_immutable
 class PhoneChecker extends StatefulWidget {
-  const PhoneChecker({super.key});
+  PhoneChecker({super.key});
   static String routeName = '/phone';
+  String phone = '';
 
   @override
   State<PhoneChecker> createState() => _PhoneCheckerState();
 }
 
 class _PhoneCheckerState extends State<PhoneChecker> {
+  final maskFormatter = MaskTextInputFormatter(
+      mask: '+# (###) ###-##-##',
+      filter: {"#": RegExp(r'[0-9]')},
+      type: MaskAutoCompletionType.lazy);
+
   final _controller = SidebarXController(selectedIndex: 0, extended: true);
   final TextEditingController _phoneController = TextEditingController();
 
   CheckNumber checkNumber = CheckNumber();
   List<CheckResponsePhoneNumber> number = [];
 
+  CheckCode checkCode = CheckCode();
+  List<CheckResponseCode> code = [];
+
+  AuthService authService = AuthService();
+
   bool swap = false;
+
   final String defaultCode = '000000';
 
   @override
   Widget build(BuildContext context) {
     SizeConfig().init(context);
-
     Widget swapFormFirst = Column(
       children: [
         const Align(
@@ -47,6 +62,7 @@ class _PhoneCheckerState extends State<PhoneChecker> {
           height: 10,
         ),
         TextField(
+          keyboardType: TextInputType.number,
           controller: _phoneController,
           decoration: InputDecoration(
               filled: true,
@@ -54,26 +70,35 @@ class _PhoneCheckerState extends State<PhoneChecker> {
               border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(6),
                   borderSide: BorderSide.none)),
+          inputFormatters: [maskFormatter],
         ),
         const SizedBox(
           height: 10,
         ),
         ElevatedButton(
             onPressed: () async {
-              String phone = _phoneController.text;
-              bool success = await checkNumber.getNumber(phone);
+              widget.phone = _phoneController.text;
+              SharedPreferences sharedPreferences =
+                  await SharedPreferences.getInstance();
+              await checkCode.getCode(widget.phone);
+              bool success = await checkNumber.getNumber(widget.phone);
               if (success) {
                 setState(() {
                   swap = true;
                   number = checkNumber.datatosave;
+                  code = checkCode.datatosave;
+                  sharedPreferences.setString('phone', widget.phone);
                 });
               } else {
-                await checkNumber.createUser(phone);
-                bool isHere = await checkNumber.getNumber(phone);
+                await checkNumber.createUser(widget.phone);
+                await checkCode.getCode(widget.phone);
+                bool isHere = await checkNumber.getNumber(widget.phone);
                 if (isHere) {
                   setState(() {
                     swap = true;
                     number = checkNumber.datatosave;
+                    code = checkCode.datatosave;
+                    sharedPreferences.setString('phone', widget.phone);
                   });
                 }
               }
@@ -132,15 +157,12 @@ class _PhoneCheckerState extends State<PhoneChecker> {
         ),
         ElevatedButton(
             onPressed: () async {
-              String phone = _phoneController.text;
+              widget.phone = _phoneController.text;
               try {
                 Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => MyProfile(
-                              phone: number.firstWhere(
-                                  (element) => element.phone == phone),
-                            )));
+                        builder: (context) => Profile(phone: widget.phone)));
               } catch (ex) {
                 Exception("Не удалось сравнить $ex");
               }
@@ -157,7 +179,6 @@ class _PhoneCheckerState extends State<PhoneChecker> {
             ))
       ],
     );
-
     return Scaffold(
         backgroundColor: kPrimaryColor,
         appBar: AppBar(

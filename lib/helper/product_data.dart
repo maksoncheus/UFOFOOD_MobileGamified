@@ -129,3 +129,23 @@ class CheckNumber {
     }
   }
 }
+
+class CheckCode {
+  List<CheckResponseCode> datatosave = [];
+  Future<void> getCode(String phoneNumber) async {
+    var url = Uri.parse("http://89.108.77.131/api/user/code");
+    try {
+      final response = await post(url, body: {'Phone': phoneNumber});
+      var jsonData = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        jsonData['response'].forEach((element) {
+          CheckResponseCode code = CheckResponseCode(code: element['code']);
+          datatosave.add(code);
+        });
+      }
+      print(response.body);
+    } catch (er) {
+      Exception("Не удалось отправить запрос");
+    }
+  }
+}

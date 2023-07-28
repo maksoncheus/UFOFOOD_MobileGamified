@@ -7,5 +7,5 @@ import '../Views/MainViews/main_view.dart';
 final Map<String, WidgetBuilder> routes = {
   MainView.routeName: (context) => const MainView(),
   MenuView.routeName: (context) => const MenuView(),
-  PhoneChecker.routeName: (context) => const PhoneChecker()
+  PhoneChecker.routeName: (context) => PhoneChecker()
 };

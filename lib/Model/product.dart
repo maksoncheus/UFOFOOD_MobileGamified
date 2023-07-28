@@ -58,3 +58,10 @@ class CheckResponsePhoneNumber {
     required this.phone,
   });
 }
+
+class CheckResponseCode {
+  String code;
+  CheckResponseCode({
+    required this.code,
+  });
+}

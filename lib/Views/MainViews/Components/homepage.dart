@@ -1,11 +1,13 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sidebarx/sidebarx.dart';
 import 'package:ufo_food/Model/product.dart';
 import 'package:ufo_food/Views/MainViews/main_view.dart';
 import 'package:ufo_food/Views/MenuViews/menu_view.dart';
 import 'package:ufo_food/Views/PhoneCheckerView/phone_checker.dart';
 import 'package:ufo_food/Views/ProductViews/product_view.dart';
+import 'package:ufo_food/Views/ProfileView/my_profile.dart';
 import 'package:ufo_food/data/constants.dart';
 import 'package:ufo_food/helper/product_data.dart';
 
@@ -21,6 +23,17 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   List<ResponseProduct> products = [];
   final _controller = SidebarXController(selectedIndex: 0, extended: true);
+
+  String? finalPhone = '';
+
+  Future getValidationPhone() async {
+    final SharedPreferences sharedPreferences =
+        await SharedPreferences.getInstance();
+    String? obtainedPhone = sharedPreferences.getString('phone');
+    setState(() {
+      finalPhone = obtainedPhone;
+    });
+  }
 
   getProducts() async {
     Product productsdata = Product();
@@ -54,61 +67,31 @@ class _HomePageState extends State<HomePage> {
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.done) {
                   if (snapshot.hasError) {
-                    return const Center(
+                    return const ErrorState();
+                  } else {
+                    return Expanded(
                       child: Column(
                         children: [
-                          SizedBox(
-                            height: 220,
-                          ),
-                          Icon(
-                            Icons.wifi_off_outlined,
-                            size: 100,
-                            color: Colors.red,
-                          ),
-                          SizedBox(
-                            height: 10,
-                          ),
-                          AutoSizeText(
-                            "Нет соединения",
-                            style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: kTextColor),
-                          ),
-                          SizedBox(
-                            height: 10,
-                          ),
-                          AutoSizeText(
-                            "Проверьте соединение с сетью и обновите страницу",
-                            style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w400,
-                                color: kTextColor),
-                          ),
-                          SizedBox(
-                            height: 10,
+                          bannerView(),
+                          titleCategory("Каталог"),
+                          Expanded(
+                            child: ListView.builder(
+                              itemCount: products.length,
+                              itemBuilder: (context, index) {
+                                return Column(
+                                  children: <Widget>[
+                                    productCard(context, index),
+                                  ],
+                                );
+                              },
+                            ),
                           ),
                         ],
                       ),
                     );
-                  } else {
-                    return Expanded(
-                      child: ListView.builder(
-                        itemCount: products.length,
-                        itemBuilder: (context, index) {
-                          return Column(
-                            children: <Widget>[
-                              bannerView(),
-                              titleCategory("Каталог"),
-                              productCard(context, index),
-                            ],
-                          );
-                        },
-                      ),
-                    );
                   }
                 } else {
-                  return const CircularProgressIndicator();
+                  return const LoadingWidget();
                 }
               },
             ),
@@ -247,7 +230,7 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           Padding(
-            padding: EdgeInsets.only(left: 210, right: 10),
+            padding: EdgeInsets.only(left: 180, right: 40),
             child: Icon(
               Icons.sms_failed_rounded,
               size: 55,
@@ -260,14 +243,76 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-class SideBarExample extends StatelessWidget {
-  const SideBarExample({Key? key, required SidebarXController controller})
-      : _controller = controller,
-        super(key: key);
-  final SidebarXController _controller;
+class LoadingWidget extends StatelessWidget {
+  const LoadingWidget({
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
+    return const CircularProgressIndicator();
+  }
+}
+
+class ErrorState extends StatelessWidget {
+  const ErrorState({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: Column(
+        children: [
+          SizedBox(
+            height: 220,
+          ),
+          Icon(
+            Icons.wifi_off_outlined,
+            size: 100,
+            color: Colors.red,
+          ),
+          SizedBox(
+            height: 10,
+          ),
+          AutoSizeText(
+            "Нет соединения",
+            style: TextStyle(
+                fontSize: 18, fontWeight: FontWeight.bold, color: kTextColor),
+          ),
+          SizedBox(
+            height: 10,
+          ),
+          AutoSizeText(
+            "Проверьте соединение с сетью и обновите страницу",
+            style: TextStyle(
+                fontSize: 14, fontWeight: FontWeight.w400, color: kTextColor),
+          ),
+          SizedBox(
+            height: 10,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class SideBarExample extends StatelessWidget {
+  SideBarExample({Key? key, required SidebarXController controller})
+      : _controller = controller,
+        super(key: key);
+
+  final SidebarXController _controller;
+  String? phone;
+
+  Future<void> checkAuth() async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    phone = sharedPreferences.getString('phone');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    checkAuth();
     return SidebarX(
       controller: _controller,
       theme: const SidebarXTheme(
@@ -298,7 +343,14 @@ class SideBarExample extends StatelessWidget {
         SidebarXItem(
             icon: Icons.person_4_outlined,
             label: 'Профиль',
-            onTap: () => Navigator.pushNamed(context, PhoneChecker.routeName)),
+            onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => phone != null
+                        ? Profile(
+                            phone: phone.toString(),
+                          )
+                        : PhoneChecker()))),
         SidebarXItem(
             icon: Icons.home_outlined,
             label: 'Главная',
