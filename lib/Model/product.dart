@@ -1,4 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'package:get/get.dart';
+
 class ResponseProduct {
   String title;
   int categoryId;
@@ -24,8 +26,9 @@ class CategoryResponseProduct {
   });
 }
 
-class IngredientResponseProduct {
+class IngredientResponseProduct extends GetxController {
   int id;
+  var ingredientCounts = 0.obs;
   int categoryId;
   String title;
 
@@ -34,6 +37,14 @@ class IngredientResponseProduct {
     required this.categoryId,
     required this.title,
   });
+
+  void incrementCount() {
+    ingredientCounts.value++;
+  }
+
+  void decrementCount() {
+    ingredientCounts.value--;
+  }
 }
 
 class CheckResponsePhone {

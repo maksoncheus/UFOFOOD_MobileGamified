@@ -11,6 +11,7 @@ import 'package:ufo_food/Views/ProfileView/my_profile.dart';
 import 'package:ufo_food/data/constants.dart';
 import 'package:ufo_food/helper/product_data.dart';
 
+import '../../ProductViews/product.dart';
 import 'title_category.dart';
 
 class HomePage extends StatefulWidget {

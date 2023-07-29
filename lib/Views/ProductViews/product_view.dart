@@ -1,6 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:sidebarx/sidebarx.dart';
 
 import 'package:ufo_food/Model/product.dart';
@@ -27,7 +28,6 @@ class _ProductViewState extends State<ProductView> {
   final _controller = SidebarXController(selectedIndex: 0, extended: true);
 
   List<IngredientResponseProduct> ingredients = [];
-  int ingredientCounts = 0;
 
   getIngredient() async {
     IngredientProduct ingredientsdata = IngredientProduct();
@@ -100,7 +100,7 @@ class _ProductViewState extends State<ProductView> {
                                         itemBuilder: (context, index) {
                                           if (ingredients[index].categoryId ==
                                               widget.product.categoryId) {
-                                            return ingredientsView(index);
+                                            return ingridientView(index);
                                           }
                                           return null;
                                         }),
@@ -137,55 +137,54 @@ class _ProductViewState extends State<ProductView> {
     );
   }
 
-  Stack ingredientsView(int index) {
+  Stack ingridientView(int index) {
     return Stack(
-      children: [
+      children: <Widget>[
         Container(
-            margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
-            height: 50,
-            width: 220,
-            child: Row(
-              children: [
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        if (ingredientCounts != 0) {
-                          ingredientCounts--;
-                        }
-                      });
-                    },
-                    child: const Icon(
-                      Icons.remove_circle_outline,
-                      size: 30,
-                      color: kSecondaryColor,
-                    ),
+          margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+          child: Row(
+            children: [
+              Align(
+                alignment: Alignment.bottomLeft,
+                child: GestureDetector(
+                  onTap: () {
+                    if (ingredients[index].ingredientCounts != 0) {
+                      ingredients[index].decrementCount();
+                    }
+                  },
+                  child: const Icon(
+                    Icons.remove_circle_outline,
+                    size: 30,
+                    color: kSecondaryColor,
                   ),
                 ),
-                Expanded(
-                  child: Center(
-                    child:
-                        Text('${ingredients[index].title}:$ingredientCounts'),
+              ),
+              Expanded(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    AutoSizeText(ingredients[index].title),
+                    Obx(() => AutoSizeText(
+                        " x${ingredients[index].ingredientCounts}"))
+                  ],
+                ),
+              ),
+              Align(
+                alignment: Alignment.centerRight,
+                child: GestureDetector(
+                  onTap: () {
+                    ingredients[index].incrementCount();
+                  },
+                  child: const Icon(
+                    Icons.add_circle_outline,
+                    size: 30,
+                    color: kSecondaryColor,
                   ),
                 ),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        ingredientCounts++;
-                      });
-                    },
-                    child: const Icon(
-                      Icons.add_circle_outline,
-                      size: 30,
-                      color: kSecondaryColor,
-                    ),
-                  ),
-                )
-              ],
-            ))
+              ),
+            ],
+          ),
+        )
       ],
     );
   }
