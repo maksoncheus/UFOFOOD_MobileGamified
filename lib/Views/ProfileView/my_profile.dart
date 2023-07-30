@@ -28,6 +28,8 @@ class _ProfileState extends State<Profile> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
 
+  UpdateInfo updateInfo = UpdateInfo();
+
   getNumber() async {
     CheckNumber checkNumber = CheckNumber();
     await checkNumber.getNumber(widget.phone);
@@ -102,6 +104,9 @@ class _ProfileState extends State<Profile> {
                                           ),
                                           TextField(
                                             controller: _nameController,
+                                            onChanged: (value) {
+                                              updateInfo.changeFirstName(value);
+                                            },
                                             decoration: InputDecoration(
                                                 filled: true,
                                                 fillColor: kFieldColor,
@@ -135,6 +140,9 @@ class _ProfileState extends State<Profile> {
                                           ),
                                           TextField(
                                             controller: _lastNameController,
+                                            onChanged: (value) {
+                                              updateInfo.changeLastName(value);
+                                            },
                                             decoration: InputDecoration(
                                                 filled: true,
                                                 fillColor: kFieldColor,
@@ -187,7 +195,7 @@ class _ProfileState extends State<Profile> {
                                               context,
                                               MaterialPageRoute(
                                                   builder: (context) =>
-                                                      MainView()));
+                                                      const MainView()));
                                         },
                                         child: const Text("Выйти"))
                                   ],

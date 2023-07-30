@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ufo_food/Model/product.dart';
 
 class Product {
@@ -19,7 +20,8 @@ class Product {
               description: element['Description'],
               price: price,
               image: element['Image'],
-              categoryId: element['CategoryId']);
+              categoryId: element['CategoryId'],
+              id: element['id']);
           datatosave.add(responseProduct);
         }
       });
@@ -143,9 +145,115 @@ class CheckCode {
           datatosave.add(code);
         });
       }
+      // ignore: avoid_print
       print(response.body);
     } catch (er) {
       Exception("Не удалось отправить запрос");
+    }
+  }
+}
+
+class CheckToken {
+  Future<Map<String, dynamic>> authenticateUser(
+      String phoneNumber, String code) async {
+    var url = Uri.parse("http://89.108.77.131/api/user/auth");
+    try {
+      final response =
+          await post(url, body: {'Phone': phoneNumber, 'Code': code});
+      if (response.statusCode == 200) {
+        var jsonData = jsonDecode(response.body);
+        var user = jsonData['response']['user'];
+        var bearerTocken = jsonData['response']['bearerTocken'];
+        var id = user['id'];
+        return {
+          'bearerTocken': bearerTocken,
+          'id': id,
+        };
+      } else {
+        throw Exception("Ошибка аутентификации: ${response.statusCode}");
+      }
+    } catch (error) {
+      throw Exception("Не удалось отправить запрос: $error");
+    }
+  }
+}
+
+class UpdateInfo {
+  Future<void> changeFirstName(String name) async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    var bearerTocken = sharedPreferences.getString('bearerTocken');
+    var id = sharedPreferences.getInt('UserId').toString();
+    if (bearerTocken != null) {
+      var url = Uri.parse("http://89.108.77.131/api/user/update");
+      try {
+        final response = await post(url,
+            body: {'Id': id, 'FirstName': name},
+            headers: {'Authorization': 'Bearer $bearerTocken'});
+        if (response.statusCode == 200) {
+        } else {
+          throw Exception("Ошибка при изменении имени: ${response.statusCode}");
+        }
+      } catch (error) {
+        throw Exception("Не удалось отправить запрос: ${error}");
+      }
+    } else {
+      throw Exception("Токен не найден");
+    }
+  }
+
+  Future<void> changeLastName(String lastName) async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    var bearerTocken = sharedPreferences.getString('bearerTocken');
+    var id = sharedPreferences.getInt('UserId').toString();
+    if (bearerTocken != null) {
+      var url = Uri.parse("http://89.108.77.131/api/user/update");
+      try {
+        final response = await post(url,
+            body: {'Id': id, 'LastName': lastName},
+            headers: {'Authorization': 'Bearer $bearerTocken'});
+        if (response.statusCode == 200) {
+        } else {
+          throw Exception(
+              "Ошибка при изменении фамилии: ${response.statusCode}");
+        }
+      } catch (error) {
+        throw Exception("Не удалось отправить запрос: ${error}");
+      }
+    } else {
+      throw Exception("Токен не найден");
+    }
+  }
+}
+
+class Basket {
+  Future<void> addProduct(String product) async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    var bearerTocken = sharedPreferences.getString('bearerTocken');
+    var userId = sharedPreferences.getInt('UserId').toString();
+    var menuId = sharedPreferences.getInt('menuId').toString();
+    var price = sharedPreferences.getInt('price').toString();
+    var count = sharedPreferences.getInt('count').toString();
+    if (bearerTocken != null) {
+      var url = Uri.parse("http://89.108.77.131/api/basket/create");
+      try {
+        final response = await post(url, body: {
+          'UserId': userId,
+          'MenuId': menuId,
+          'Price': price,
+          'Count': count
+        }, headers: {
+          'Authorization': 'Bearer $bearerTocken'
+        });
+        if (response.statusCode == 200) {
+        } else {
+          throw Exception(
+              "Ошибка при попытке добавить в корзину: ${response.statusCode}");
+        }
+      } catch (error) {
+        throw Exception("Не удалось отправить запрос: ${error}");
+      }
+    } else {
+      throw Exception("Токен не найден");
     }
   }
 }

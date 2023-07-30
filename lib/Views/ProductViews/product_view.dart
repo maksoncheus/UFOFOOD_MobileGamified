@@ -2,9 +2,11 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sidebarx/sidebarx.dart';
 
 import 'package:ufo_food/Model/product.dart';
+import 'package:ufo_food/Views/BasketViews/basket_view.dart';
 import 'package:ufo_food/data/constants.dart';
 import 'package:ufo_food/data/size_config.dart';
 import 'package:ufo_food/helper/product_data.dart';
@@ -33,6 +35,10 @@ class _ProductViewState extends State<ProductView> {
     IngredientProduct ingredientsdata = IngredientProduct();
     await ingredientsdata.getIngredient();
     ingredients = ingredientsdata.datatosave;
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    sharedPreferences.setInt('menuId', widget.product.id);
+    sharedPreferences.setInt('price', widget.product.price);
+    sharedPreferences.setInt('count', widget.product.productCounts.value);
   }
 
   @override
@@ -116,7 +122,13 @@ class _ProductViewState extends State<ProductView> {
                     )),
               ),
               TextButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) =>
+                                BasketView(product: widget.product)));
+                  },
                   style: const ButtonStyle(
                       backgroundColor:
                           MaterialStatePropertyAll<Color>(kSecondaryColor)),

@@ -37,6 +37,8 @@ class _PhoneCheckerState extends State<PhoneChecker> {
   CheckCode checkCode = CheckCode();
   List<CheckResponseCode> code = [];
 
+  CheckToken checkToken = CheckToken();
+
   AuthService authService = AuthService();
 
   bool swap = false;
@@ -158,7 +160,20 @@ class _PhoneCheckerState extends State<PhoneChecker> {
         ElevatedButton(
             onPressed: () async {
               widget.phone = _phoneController.text;
+
+              await checkCode.getCode(widget.phone);
+              code = checkCode.datatosave;
+              var authenticationResult =
+                  await checkToken.authenticateUser(widget.phone, defaultCode);
+
+              var bearerTocken = authenticationResult['bearerTocken'];
+              var id = authenticationResult['id'];
+
               try {
+                SharedPreferences sharedPreferences =
+                    await SharedPreferences.getInstance();
+                await sharedPreferences.setString('bearerTocken', bearerTocken);
+                await sharedPreferences.setInt('UserId', id);
                 Navigator.push(
                     context,
                     MaterialPageRoute(

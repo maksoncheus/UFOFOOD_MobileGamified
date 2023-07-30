@@ -1,13 +1,16 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:get/get.dart';
 
-class ResponseProduct {
+class ResponseProduct extends GetxController {
+  int id;
+  var productCounts = 0.obs;
   String title;
   int categoryId;
   String description;
   int price;
   String image;
   ResponseProduct({
+    required this.id,
     required this.title,
     required this.categoryId,
     required this.description,
