@@ -4,14 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sidebarx/sidebarx.dart';
-
 import 'package:ufo_food/Model/product.dart';
 import 'package:ufo_food/Views/BasketViews/basket_view.dart';
 import 'package:ufo_food/data/constants.dart';
 import 'package:ufo_food/data/size_config.dart';
 import 'package:ufo_food/helper/product_data.dart';
-
-import '../MainViews/Components/homepage.dart';
+import '../MainViews/Components/loading_bar.dart';
+import '../MainViews/Components/sidebar.dart';
 import '../MainViews/Components/title_category.dart';
 
 class ProductView extends StatefulWidget {
@@ -31,14 +30,12 @@ class _ProductViewState extends State<ProductView> {
 
   List<IngredientResponseProduct> ingredients = [];
 
+  Basket basket = Basket();
+
   getIngredient() async {
     IngredientProduct ingredientsdata = IngredientProduct();
     await ingredientsdata.getIngredient();
     ingredients = ingredientsdata.datatosave;
-    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-    sharedPreferences.setInt('menuId', widget.product.id);
-    sharedPreferences.setInt('price', widget.product.price);
-    sharedPreferences.setInt('count', widget.product.productCounts.value);
   }
 
   @override
@@ -68,77 +65,8 @@ class _ProductViewState extends State<ProductView> {
             children: <Widget>[
               titleCategory(widget.product.title),
               imageView(),
-              Container(
-                margin: EdgeInsets.symmetric(
-                    horizontal: getProportionateScreenWidth(20),
-                    vertical: getProportionateScreenHeight(20)),
-                width: double.infinity,
-                height: getProportionateScreenHeight(360),
-                color: Colors.white,
-                child: Padding(
-                    padding: EdgeInsets.symmetric(
-                        vertical: getProportionateScreenHeight(10),
-                        horizontal: getProportionateScreenWidth(50)),
-                    child: FutureBuilder(
-                      future: getIngredient(),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.done) {
-                          if (snapshot.hasError) {
-                            return errorToConnect();
-                          } else {
-                            return Container(
-                              height: 249,
-                              width: 312,
-                              color: Colors.white,
-                              child: Column(
-                                children: [
-                                  const Center(
-                                      child: AutoSizeText(
-                                    "Вы можете добавить:",
-                                    maxLines: 1,
-                                    style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold),
-                                  )),
-                                  Expanded(
-                                    child: ListView.builder(
-                                        itemCount: ingredients.length,
-                                        itemBuilder: (context, index) {
-                                          if (ingredients[index].categoryId ==
-                                              widget.product.categoryId) {
-                                            return ingridientView(index);
-                                          }
-                                          return null;
-                                        }),
-                                  ),
-                                ],
-                              ),
-                            );
-                          }
-                        } else {
-                          return const CircularProgressIndicator();
-                        }
-                      },
-                    )),
-              ),
-              TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) =>
-                                BasketView(product: widget.product)));
-                  },
-                  style: const ButtonStyle(
-                      backgroundColor:
-                          MaterialStatePropertyAll<Color>(kSecondaryColor)),
-                  child: const AutoSizeText(
-                    "Добавить в корзину",
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold),
-                  )),
+              ingredientView(),
+              addToBasket(context),
               const SizedBox(
                 height: 5,
               )
@@ -146,6 +74,92 @@ class _ProductViewState extends State<ProductView> {
           ),
         ),
       ),
+    );
+  }
+
+  TextButton addToBasket(BuildContext context) {
+    return TextButton(
+        onPressed: () async {
+          SharedPreferences sharedPreferences =
+              await SharedPreferences.getInstance();
+          var isAuth = sharedPreferences.getBool('isAuth');
+          int? userId = sharedPreferences.getInt('UserId');
+          if (isAuth == true) {
+            await basket.addProduct(
+                userId.toString(),
+                widget.product.id.toString(),
+                widget.product.price.toString(),
+                1.toString());
+            // ignore: use_build_context_synchronously
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => BasketView(
+                          userId: userId,
+                        )));
+          }
+        },
+        style: const ButtonStyle(
+            backgroundColor: MaterialStatePropertyAll<Color>(kSecondaryColor)),
+        child: const AutoSizeText(
+          "Добавить в корзину",
+          style: TextStyle(
+              color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+        ));
+  }
+
+  Container ingredientView() {
+    return Container(
+      margin: EdgeInsets.symmetric(
+          horizontal: getProportionateScreenWidth(20),
+          vertical: getProportionateScreenHeight(20)),
+      width: double.infinity,
+      height: getProportionateScreenHeight(360),
+      color: Colors.white,
+      child: Padding(
+          padding: EdgeInsets.symmetric(
+              vertical: getProportionateScreenHeight(10),
+              horizontal: getProportionateScreenWidth(50)),
+          child: FutureBuilder(
+            future: getIngredient(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.done) {
+                if (snapshot.hasError) {
+                  return errorToConnect();
+                } else {
+                  return Container(
+                    height: 249,
+                    width: 312,
+                    color: Colors.white,
+                    child: Column(
+                      children: [
+                        const Center(
+                            child: AutoSizeText(
+                          "Вы можете добавить:",
+                          maxLines: 1,
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold),
+                        )),
+                        Expanded(
+                          child: ListView.builder(
+                              itemCount: ingredients.length,
+                              itemBuilder: (context, index) {
+                                if (ingredients[index].categoryId ==
+                                    widget.product.categoryId) {
+                                  return ingridientView(index);
+                                }
+                                return null;
+                              }),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+              } else {
+                return const LoadingWidget();
+              }
+            },
+          )),
     );
   }
 
@@ -160,6 +174,7 @@ class _ProductViewState extends State<ProductView> {
                 alignment: Alignment.bottomLeft,
                 child: GestureDetector(
                   onTap: () {
+                    // ignore: unrelated_type_equality_checks
                     if (ingredients[index].ingredientCounts != 0) {
                       ingredients[index].decrementCount();
                     }

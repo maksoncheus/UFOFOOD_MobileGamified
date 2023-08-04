@@ -1,6 +1,7 @@
 import 'dart:convert';
-import 'package:http/http.dart';
+import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 import 'package:ufo_food/Model/product.dart';
 
 class Product {
@@ -8,11 +9,12 @@ class Product {
 
   Future<void> getProducts() async {
     var url = Uri.parse("http://89.108.77.131/api/menu");
-    var response = await get(url);
-    var jsonData = jsonDecode(response.body);
+    var request = await HttpClient().getUrl(url);
+    var response = await request.close();
+    var jsonData = jsonDecode(await utf8.decodeStream(response));
 
     if (response.statusCode == 200) {
-      jsonData['response'].forEach((element) {
+      jsonData['response'].forEach((element) async {
         int? price = int.tryParse(element['Price']);
         if (price != null) {
           ResponseProduct responseProduct = ResponseProduct(
@@ -34,11 +36,12 @@ class CategoryProduct {
 
   Future<void> getCategory() async {
     var url = Uri.parse("http://89.108.77.131/api/menu/category");
-    var response = await get(url);
-    var jsonData = jsonDecode(response.body);
+    var request = await HttpClient().getUrl(url);
+    var response = await request.close();
+    var jsonData = jsonDecode(await utf8.decodeStream(response));
 
     if (response.statusCode == 200) {
-      jsonData['response'].forEach((element) {
+      jsonData['response'].forEach((element) async {
         CategoryResponseProduct responseProduct =
             CategoryResponseProduct(title: element['Title'], id: element['id']);
         datatosave.add(responseProduct);
@@ -52,11 +55,11 @@ class IngredientProduct {
 
   Future<void> getIngredient() async {
     var url = Uri.parse("http://89.108.77.131/api/ingridient/all");
-    var response = await get(url);
-    var jsonData = jsonDecode(response.body);
-
+    var request = await HttpClient().getUrl(url);
+    var response = await request.close();
+    var jsonData = jsonDecode(await utf8.decodeStream(response));
     if (response.statusCode == 200) {
-      jsonData['response'].forEach((element) {
+      jsonData['response'].forEach((element) async {
         IngredientResponseProduct ingredientResponseProduct =
             IngredientResponseProduct(
                 id: element['id'],
@@ -72,11 +75,19 @@ class CheckPhone {
   List<CheckResponsePhone> datatosave = [];
 
   Future<bool> createPhone(String phone) async {
-    Map<String, dynamic> request = {'Phone': phone};
+    Map<String, dynamic> postRequest = {'Phone': phone};
     var url = Uri.parse("http://89.108.77.131/api/user/code");
-    Map<String, String> headers = {"accept": "application/json"};
-    var response = await post(url, body: request, headers: headers);
-    var jsonData = jsonDecode(response.body);
+    var jsonRequest = jsonEncode(postRequest);
+
+    var httpClient = HttpClient();
+    var request = await httpClient.postUrl(url);
+    request.headers.set('content-type', 'application/json');
+    request.add(utf8.encode(jsonRequest));
+
+    var response = await request.close();
+    var responseBody = await utf8.decodeStream(response);
+
+    var jsonData = jsonDecode(responseBody);
 
     if (response.statusCode == 200) {
       String code = jsonData['response']['code'];
@@ -97,12 +108,13 @@ class CheckNumber {
   Future<bool> getNumber(String phoneNumber) async {
     var url =
         Uri.parse("http://89.108.77.131/api/user/show/by/phone/$phoneNumber");
-    var response = await get(url);
-    var jsonData = jsonDecode(response.body);
+    var request = await HttpClient().getUrl(url);
+    var response = await request.close();
+    var jsonData = jsonDecode(await utf8.decodeStream(response));
 
     if (response.statusCode == 200) {
       if (jsonData['response'].isNotEmpty) {
-        jsonData['response'].forEach((element) {
+        jsonData['response'].forEach((element) async {
           CheckResponsePhoneNumber checkResponsePhoneNumber =
               CheckResponsePhoneNumber(
                   id: element['id'],
@@ -123,9 +135,17 @@ class CheckNumber {
   Future<void> createUser(String phoneNumber) async {
     var url = Uri.parse("http://89.108.77.131/api/user/create");
     try {
-      final response = await post(url, body: {'Phone': phoneNumber});
+      var httpClient = HttpClient();
+      var request = await httpClient.postUrl(url);
+      request.headers.set('content-type', 'application/json');
+      var formData = {'Phone': phoneNumber};
+      var jsonRequest = jsonEncode(formData);
+      request.add(utf8.encode(jsonRequest));
+
+      var response = await request.close();
+      var responseBody = await utf8.decodeStream(response);
       // ignore: avoid_print
-      print(response.body);
+      print(responseBody);
     } catch (er) {
       Exception("Не удалось создать юзера");
     }
@@ -137,16 +157,26 @@ class CheckCode {
   Future<void> getCode(String phoneNumber) async {
     var url = Uri.parse("http://89.108.77.131/api/user/code");
     try {
-      final response = await post(url, body: {'Phone': phoneNumber});
-      var jsonData = jsonDecode(response.body);
+      var httpClient = HttpClient();
+      var request = await httpClient.getUrl(url);
+      request.headers.set('content-type', 'application/json');
+
+      var formData = {'Phone': phoneNumber};
+      var jsonRequest = jsonEncode(formData);
+      request.add(utf8.encode(jsonRequest));
+
+      var response = await request.close();
+      var responseBody = await utf8.decodeStream(response);
+
+      var jsonData = jsonDecode(responseBody);
       if (response.statusCode == 200) {
-        jsonData['response'].forEach((element) {
+        jsonData['response'].forEach((element) async {
           CheckResponseCode code = CheckResponseCode(code: element['code']);
           datatosave.add(code);
         });
       }
       // ignore: avoid_print
-      print(response.body);
+      print(responseBody);
     } catch (er) {
       Exception("Не удалось отправить запрос");
     }
@@ -158,8 +188,10 @@ class CheckToken {
       String phoneNumber, String code) async {
     var url = Uri.parse("http://89.108.77.131/api/user/auth");
     try {
-      final response =
-          await post(url, body: {'Phone': phoneNumber, 'Code': code});
+      var response = await http.post(url,
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({'Phone': phoneNumber, 'Code': code}));
+
       if (response.statusCode == 200) {
         var jsonData = jsonDecode(response.body);
         var user = jsonData['response']['user'];
@@ -183,18 +215,27 @@ class UpdateInfo {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     var bearerTocken = sharedPreferences.getString('bearerTocken');
     var id = sharedPreferences.getInt('UserId').toString();
+
     if (bearerTocken != null) {
       var url = Uri.parse("http://89.108.77.131/api/user/update");
       try {
-        final response = await post(url,
-            body: {'Id': id, 'FirstName': name},
-            headers: {'Authorization': 'Bearer $bearerTocken'});
+        var httpClient = HttpClient();
+        var request = await httpClient.postUrl(url);
+        request.headers.set('content-type', 'application/json');
+        request.headers.set('Authorization', 'Bearer $bearerTocken');
+
+        var formData = {'Id': id, 'FirstName': name};
+        var jsonRequest = json.encode(formData);
+        request.add(utf8.encode(jsonRequest));
+
+        var response = await request.close();
+
         if (response.statusCode == 200) {
         } else {
           throw Exception("Ошибка при изменении имени: ${response.statusCode}");
         }
       } catch (error) {
-        throw Exception("Не удалось отправить запрос: ${error}");
+        throw Exception("Не удалось отправить запрос: $error");
       }
     } else {
       throw Exception("Токен не найден");
@@ -205,19 +246,28 @@ class UpdateInfo {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     var bearerTocken = sharedPreferences.getString('bearerTocken');
     var id = sharedPreferences.getInt('UserId').toString();
+
     if (bearerTocken != null) {
       var url = Uri.parse("http://89.108.77.131/api/user/update");
       try {
-        final response = await post(url,
-            body: {'Id': id, 'LastName': lastName},
-            headers: {'Authorization': 'Bearer $bearerTocken'});
+        var httpClient = HttpClient();
+        var request = await httpClient.postUrl(url);
+        request.headers.set('content-type', 'application/json');
+        request.headers.set('Authorization', 'Bearer $bearerTocken');
+
+        var formData = {'Id': id, 'LastName': lastName};
+        var jsonRequest = json.encode(formData);
+        request.add(utf8.encode(jsonRequest));
+
+        var response = await request.close();
+
         if (response.statusCode == 200) {
         } else {
           throw Exception(
               "Ошибка при изменении фамилии: ${response.statusCode}");
         }
       } catch (error) {
-        throw Exception("Не удалось отправить запрос: ${error}");
+        throw Exception("Не удалось отправить запрос: $error");
       }
     } else {
       throw Exception("Токен не найден");
@@ -226,31 +276,149 @@ class UpdateInfo {
 }
 
 class Basket {
-  Future<void> addProduct(String product) async {
+  List<BasketResponseProduct> addedProduct = [];
+
+  Future<void> addProduct(
+      String? userId, String menuId, String price, String count) async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     var bearerTocken = sharedPreferences.getString('bearerTocken');
-    var userId = sharedPreferences.getInt('UserId').toString();
-    var menuId = sharedPreferences.getInt('menuId').toString();
-    var price = sharedPreferences.getInt('price').toString();
-    var count = sharedPreferences.getInt('count').toString();
+
     if (bearerTocken != null) {
       var url = Uri.parse("http://89.108.77.131/api/basket/create");
       try {
-        final response = await post(url, body: {
+        var httpClient = HttpClient();
+        var request = await httpClient.postUrl(url);
+        request.headers.set('content-type', 'application/json');
+        request.headers.set('Authorization', 'Bearer $bearerTocken');
+
+        var formData = {
           'UserId': userId,
           'MenuId': menuId,
           'Price': price,
           'Count': count
-        }, headers: {
-          'Authorization': 'Bearer $bearerTocken'
-        });
+        };
+
+        var jsonRequest = json.encode(formData);
+        request.add(utf8.encode(jsonRequest));
+        var response = await request.close();
+
         if (response.statusCode == 200) {
         } else {
           throw Exception(
               "Ошибка при попытке добавить в корзину: ${response.statusCode}");
         }
       } catch (error) {
-        throw Exception("Не удалось отправить запрос: ${error}");
+        throw Exception("Не удалось отправить запрос: $error");
+      }
+    } else {
+      throw Exception("Токен не найден");
+    }
+  }
+
+  Future<void> getMenuInfo(BasketResponseProduct product) async {
+    var url = Uri.parse("http://89.108.77.131/api/menu/show/${product.menuId}");
+    try {
+      var httpClient = HttpClient();
+      var request = await httpClient.getUrl(url);
+      request.headers.set('content-type', 'application/json');
+      var response = await request.close();
+
+      var jsonData = jsonDecode(await response.transform(utf8.decoder).join());
+      if (response.statusCode == 200) {
+        product.title = jsonData['response']['Title'];
+        product.image = jsonData['response']['Image'];
+      } else {
+        throw Exception("Ошибка при выведении данных: ${response.statusCode}");
+      }
+    } catch (error) {
+      throw Exception("Не удалось отправить запрос $error");
+    }
+  }
+
+  Future<void> getAddedProduct() async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    var bearerTocken = sharedPreferences.getString('bearerTocken');
+
+    if (bearerTocken != null) {
+      var url = Uri.parse("http://89.108.77.131/api/basket/all");
+      try {
+        var httpClient = HttpClient();
+        var request = await httpClient.getUrl(url);
+        request.headers.set('content-type', 'application/json');
+        request.headers.set('Authorization', 'Bearer $bearerTocken');
+
+        var response = await request.close();
+
+        var jsonData =
+            jsonDecode(await response.transform(utf8.decoder).join());
+
+        if (response.statusCode == 200) {
+          for (var element in jsonData['response']) {
+            int? price = int.tryParse(element['Price']);
+            BasketResponseProduct products = BasketResponseProduct(
+              id: element['id'],
+              userId: element['UserId'],
+              menuId: element['MenuId'],
+              price: price,
+            );
+            await getMenuInfo(products);
+            addedProduct.add(products);
+          }
+        } else {
+          throw Exception(
+              "Ошибка при попытке вывести данные: ${response.statusCode}");
+        }
+      } catch (error) {
+        throw Exception("Не удалось отправить запрос $error");
+      }
+    } else {
+      throw Exception("Токен не найден");
+    }
+  }
+
+  Future<void> getPurchaseStory(BasketResponseProduct product) async {
+    var orderCode = 9993;
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    var bearerTocken = sharedPreferences.getString('bearerTocken');
+
+    if (bearerTocken != null) {
+      var url = Uri.parse("http://89.108.77.131/api/purchases/history/create");
+      try {
+        var httpClient = HttpClient();
+        var request = await httpClient.postUrl(url);
+        request.headers.set('content-type', 'application/json');
+        request.headers.set('Authorization', 'Bearer $bearerTocken');
+
+        var formData = {
+          'UserId': product.userId.toString(),
+          'OrderCode': orderCode.toString(),
+          'Price': product.price.toString(),
+          'Values': jsonEncode([
+            {
+              "Title": product.title.toString(),
+              "Price": product.price.toString(),
+              "Count": product.count.toString(),
+              "IngridientValue": [
+                {
+                  "Title": 'Морковь',
+                  "Count": 4,
+                }
+              ]
+            },
+          ])
+        };
+
+        var jsonRequest = jsonEncode(formData);
+        request.add(utf8.encode(jsonRequest));
+
+        var response = await request.close();
+
+        if (response.statusCode == 200) {
+        } else {
+          throw Exception("что-то не так ${response.statusCode}");
+        }
+      } catch (error) {
+        throw Exception("Ошибка $error");
       }
     } else {
       throw Exception("Токен не найден");

@@ -7,10 +7,9 @@ import 'package:ufo_food/Model/product.dart';
 import 'package:ufo_food/Views/ProfileView/my_profile.dart';
 import 'package:ufo_food/data/auth.dart';
 import 'package:ufo_food/data/size_config.dart';
-
 import '../../data/constants.dart';
 import '../../helper/product_data.dart';
-import '../MainViews/Components/homepage.dart';
+import '../MainViews/Components/sidebar.dart';
 
 // ignore: must_be_immutable
 class PhoneChecker extends StatefulWidget {
@@ -31,6 +30,8 @@ class _PhoneCheckerState extends State<PhoneChecker> {
   final _controller = SidebarXController(selectedIndex: 0, extended: true);
   final TextEditingController _phoneController = TextEditingController();
 
+  bool isAuth = false;
+
   CheckNumber checkNumber = CheckNumber();
   List<CheckResponsePhoneNumber> number = [];
 
@@ -48,6 +49,7 @@ class _PhoneCheckerState extends State<PhoneChecker> {
   @override
   Widget build(BuildContext context) {
     SizeConfig().init(context);
+
     Widget swapFormFirst = Column(
       children: [
         const Align(
@@ -174,6 +176,9 @@ class _PhoneCheckerState extends State<PhoneChecker> {
                     await SharedPreferences.getInstance();
                 await sharedPreferences.setString('bearerTocken', bearerTocken);
                 await sharedPreferences.setInt('UserId', id);
+                isAuth = true;
+                await sharedPreferences.setBool('isAuth', isAuth);
+                // ignore: use_build_context_synchronously
                 Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -194,6 +199,7 @@ class _PhoneCheckerState extends State<PhoneChecker> {
             ))
       ],
     );
+
     return Scaffold(
         backgroundColor: kPrimaryColor,
         appBar: AppBar(
@@ -225,32 +231,5 @@ class _PhoneCheckerState extends State<PhoneChecker> {
             ),
           ),
         ));
-  }
-}
-
-class CodeInputWidget extends StatefulWidget {
-  const CodeInputWidget({super.key, required this.defaultCode});
-  final String defaultCode;
-
-  @override
-  State<CodeInputWidget> createState() => _CodeInputWidgetState();
-}
-
-class _CodeInputWidgetState extends State<CodeInputWidget> {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Column(
-        children: [
-          TextField(
-            decoration: const InputDecoration(
-              hintText: 'Введите код',
-            ),
-            controller: TextEditingController(text: widget.defaultCode),
-          ),
-          ElevatedButton(onPressed: () {}, child: const Text('Подтвердить')),
-        ],
-      ),
-    );
   }
 }

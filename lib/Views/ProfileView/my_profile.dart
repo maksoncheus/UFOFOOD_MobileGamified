@@ -5,9 +5,10 @@ import 'package:sidebarx/sidebarx.dart';
 import 'package:ufo_food/Model/product.dart';
 import 'package:ufo_food/Views/MainViews/main_view.dart';
 import 'package:ufo_food/helper/product_data.dart';
-
 import '../../data/constants.dart';
-import '../MainViews/Components/homepage.dart';
+import '../MainViews/Components/error_state.dart';
+import '../MainViews/Components/loading_bar.dart';
+import '../MainViews/Components/sidebar.dart';
 
 class Profile extends StatefulWidget {
   const Profile({
@@ -84,120 +85,13 @@ class _ProfileState extends State<Profile> {
                                           fontSize: 18,
                                           fontWeight: FontWeight.bold),
                                     )),
-                                    SizedBox(
-                                      width: double.infinity,
-                                      height: 100,
-                                      child: Column(
-                                        children: [
-                                          const Align(
-                                              alignment: Alignment.centerLeft,
-                                              child: AutoSizeText(
-                                                "Введите имя",
-                                                style: TextStyle(
-                                                    fontSize: 12,
-                                                    fontWeight: FontWeight.w500,
-                                                    color: kSecondaryColor),
-                                                maxLines: 1,
-                                              )),
-                                          const SizedBox(
-                                            height: 5,
-                                          ),
-                                          TextField(
-                                            controller: _nameController,
-                                            onChanged: (value) {
-                                              updateInfo.changeFirstName(value);
-                                            },
-                                            decoration: InputDecoration(
-                                                filled: true,
-                                                fillColor: kFieldColor,
-                                                border: OutlineInputBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            6),
-                                                    borderSide:
-                                                        BorderSide.none)),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    SizedBox(
-                                      width: double.infinity,
-                                      height: 100,
-                                      child: Column(
-                                        children: [
-                                          const Align(
-                                              alignment: Alignment.centerLeft,
-                                              child: AutoSizeText(
-                                                "Введите фамилию",
-                                                style: TextStyle(
-                                                    fontSize: 12,
-                                                    fontWeight: FontWeight.w500,
-                                                    color: kSecondaryColor),
-                                                maxLines: 1,
-                                              )),
-                                          const SizedBox(
-                                            height: 5,
-                                          ),
-                                          TextField(
-                                            controller: _lastNameController,
-                                            onChanged: (value) {
-                                              updateInfo.changeLastName(value);
-                                            },
-                                            decoration: InputDecoration(
-                                                filled: true,
-                                                fillColor: kFieldColor,
-                                                border: OutlineInputBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            6),
-                                                    borderSide:
-                                                        BorderSide.none)),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    SizedBox(
-                                      child: Container(
-                                        width: double.infinity,
-                                        height: 30,
-                                        decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          borderRadius:
-                                              BorderRadius.circular(6),
-                                        ),
-                                        child: const Padding(
-                                          padding: EdgeInsets.only(left: 10),
-                                          child: Align(
-                                              alignment: Alignment.centerLeft,
-                                              child: AutoSizeText(
-                                                "Отправлять пуш уведомления",
-                                                style: TextStyle(
-                                                  fontSize: 14,
-                                                  fontWeight: FontWeight.w500,
-                                                ),
-                                                maxLines: 1,
-                                                wrapWords: false,
-                                              )),
-                                        ),
-                                      ),
-                                    ),
+                                    firstNameField(),
+                                    lastNameField(),
+                                    pushAlert(),
                                     const SizedBox(
                                       height: 10,
                                     ),
-                                    ElevatedButton(
-                                        onPressed: () async {
-                                          SharedPreferences sharedPreferences =
-                                              await SharedPreferences
-                                                  .getInstance();
-                                          sharedPreferences.remove('phone');
-                                          // ignore: use_build_context_synchronously
-                                          Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      const MainView()));
-                                        },
-                                        child: const Text("Выйти"))
+                                    logOutButton(context)
                                   ],
                                 ),
                               ),
@@ -209,6 +103,119 @@ class _ProfileState extends State<Profile> {
               }
             })
       ]),
+    );
+  }
+
+  ElevatedButton logOutButton(BuildContext context) {
+    return ElevatedButton(
+        onPressed: () async {
+          SharedPreferences sharedPreferences =
+              await SharedPreferences.getInstance();
+          sharedPreferences.remove('phone');
+          sharedPreferences.remove('isAuth');
+          // ignore: use_build_context_synchronously
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => const MainView()));
+        },
+        child: const Text("Выйти"));
+  }
+
+  SizedBox pushAlert() {
+    return SizedBox(
+      child: Container(
+        width: double.infinity,
+        height: 30,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: const Padding(
+          padding: EdgeInsets.only(left: 10),
+          child: Align(
+              alignment: Alignment.centerLeft,
+              child: AutoSizeText(
+                "Отправлять пуш уведомления",
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+                maxLines: 1,
+                wrapWords: false,
+              )),
+        ),
+      ),
+    );
+  }
+
+  SizedBox lastNameField() {
+    return SizedBox(
+      width: double.infinity,
+      height: 100,
+      child: Column(
+        children: [
+          const Align(
+              alignment: Alignment.centerLeft,
+              child: AutoSizeText(
+                "Введите фамилию",
+                style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: kSecondaryColor),
+                maxLines: 1,
+              )),
+          const SizedBox(
+            height: 5,
+          ),
+          TextField(
+            controller: _lastNameController,
+            onChanged: (value) {
+              updateInfo.changeLastName(value);
+            },
+            decoration: InputDecoration(
+                filled: true,
+                fillColor: kFieldColor,
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(6),
+                    borderSide: BorderSide.none)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  SizedBox firstNameField() {
+    return SizedBox(
+      width: double.infinity,
+      height: 100,
+      child: Column(
+        children: [
+          const Align(
+              alignment: Alignment.centerLeft,
+              child: AutoSizeText(
+                "Введите имя",
+                style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: kSecondaryColor),
+                maxLines: 1,
+              )),
+          const SizedBox(
+            height: 5,
+          ),
+          TextField(
+            controller: _nameController,
+            onChanged: (value) {
+              updateInfo.changeFirstName(value);
+            },
+            decoration: InputDecoration(
+                filled: true,
+                fillColor: kFieldColor,
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(6),
+                    borderSide: BorderSide.none)),
+          ),
+        ],
+      ),
     );
   }
 }

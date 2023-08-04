@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ufo_food/Views/MainViews/Components/homepage.dart';
+import 'package:ufo_food/Views/MainViews/Home/homepage.dart';
 
 class MainView extends StatefulWidget {
   const MainView({super.key});

@@ -3,11 +3,12 @@ import 'package:get/get.dart';
 
 class ResponseProduct extends GetxController {
   int id;
-  var productCounts = 0.obs;
+  var productCounts = 1.obs;
   String title;
   int categoryId;
   String description;
-  int price;
+  int? price;
+  late int currentCategoryId;
   String image;
   ResponseProduct({
     required this.id,
@@ -78,4 +79,28 @@ class CheckResponseCode {
   CheckResponseCode({
     required this.code,
   });
+}
+
+class BasketResponseProduct extends GetxController {
+  int id;
+  int userId;
+  int menuId;
+  int? price;
+  var count = 1.obs;
+  late String title;
+  late String image;
+  BasketResponseProduct({
+    required this.id,
+    required this.userId,
+    required this.menuId,
+    required this.price,
+  });
+
+  void incrementCount() {
+    count.value++;
+  }
+
+  void decrementCount() {
+    count.value--;
+  }
 }

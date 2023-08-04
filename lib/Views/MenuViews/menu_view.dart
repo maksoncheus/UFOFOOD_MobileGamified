@@ -1,11 +1,13 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:sidebarx/sidebarx.dart';
-import 'package:ufo_food/Views/MainViews/Components/homepage.dart';
+import 'package:ufo_food/Views/ProductsByCategoryId/product_by_category_id.dart';
+import 'package:ufo_food/Views/MainViews/Components/error_state.dart';
 import 'package:ufo_food/helper/product_data.dart';
-
 import '../../Model/product.dart';
 import '../../data/constants.dart';
+import '../MainViews/Components/loading_bar.dart';
+import '../MainViews/Components/sidebar.dart';
 
 class MenuView extends StatefulWidget {
   const MenuView({super.key});
@@ -16,9 +18,9 @@ class MenuView extends StatefulWidget {
 }
 
 class _MenuViewState extends State<MenuView> {
-  List<CategoryResponseProduct> products = [];
   final _controller = SidebarXController(selectedIndex: 0, extended: true);
 
+  List<CategoryResponseProduct> products = [];
   getProducts() async {
     CategoryProduct productsdata = CategoryProduct();
     await productsdata.getCategory();
@@ -45,7 +47,7 @@ class _MenuViewState extends State<MenuView> {
         controller: _controller,
       ),
       body: Container(
-        color: kPrimaryColor,
+        color: Colors.yellowAccent.shade100,
         child: Column(
           children: <Widget>[
             FutureBuilder(
@@ -53,76 +55,45 @@ class _MenuViewState extends State<MenuView> {
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.done) {
                   if (snapshot.hasError) {
-                    return const Center(
-                      child: Column(
-                        children: [
-                          SizedBox(
-                            height: 220,
-                          ),
-                          Icon(
-                            Icons.wifi_off_outlined,
-                            size: 100,
-                            color: Colors.red,
-                          ),
-                          SizedBox(
-                            height: 10,
-                          ),
-                          AutoSizeText(
-                            "Нет соединения",
-                            style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: kTextColor),
-                          ),
-                          SizedBox(
-                            height: 10,
-                          ),
-                          AutoSizeText(
-                            "Проверьте соединение с сетью и обновите страницу",
-                            style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w400,
-                                color: kTextColor),
-                          ),
-                          SizedBox(
-                            height: 10,
-                          ),
-                        ],
-                      ),
-                    );
+                    return const ErrorState();
                   } else {
                     return Expanded(
                         child: ListView.builder(
                       itemCount: products.length,
                       itemBuilder: (context, index) {
-                        return Container(
-                          margin: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 20),
-                          width: double.infinity,
-                          height: 200,
-                          decoration: BoxDecoration(
-                              boxShadow: const [
-                                BoxShadow(
-                                    color: Color.fromRGBO(0, 0, 0, 0.25),
-                                    blurRadius: 10,
-                                    spreadRadius: 5,
-                                    blurStyle: BlurStyle.inner)
-                              ],
-                              borderRadius: BorderRadius.circular(20),
-                              color: kPrimaryColor),
-                          child: Center(child: Text(products[index].title)),
+                        return GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        ProductByCategoryIdView(
+                                            product: products[index])));
+                          },
+                          child: categoryList(index),
                         );
                       },
                     ));
                   }
                 } else {
-                  return const CircularProgressIndicator();
+                  return const LoadingWidget();
                 }
               },
             )
           ],
         ),
       ),
+    );
+  }
+
+  Container categoryList(int index) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+      width: 100,
+      height: 70,
+      decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20), color: kSecondaryColor),
+      child: Center(child: Text(products[index].title)),
     );
   }
 }
