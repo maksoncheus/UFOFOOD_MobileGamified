@@ -2,9 +2,9 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sidebarx/sidebarx.dart';
-import 'package:ufo_food/Model/product.dart';
 import 'package:ufo_food/Views/MainViews/main_view.dart';
 import 'package:ufo_food/helper/product_data.dart';
+import '../../Model/check_number.dart';
 import '../../data/constants.dart';
 import '../MainViews/Components/error_state.dart';
 import '../MainViews/Components/loading_bar.dart';
@@ -87,7 +87,6 @@ class _ProfileState extends State<Profile> {
                                     )),
                                     firstNameField(),
                                     lastNameField(),
-                                    pushAlert(),
                                     const SizedBox(
                                       height: 10,
                                     ),
@@ -102,7 +101,7 @@ class _ProfileState extends State<Profile> {
                 return const LoadingWidget();
               }
             })
-      ]),
+      ]), 
     );
   }
 
@@ -120,32 +119,32 @@ class _ProfileState extends State<Profile> {
         child: const Text("Выйти"));
   }
 
-  SizedBox pushAlert() {
-    return SizedBox(
-      child: Container(
-        width: double.infinity,
-        height: 30,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(6),
-        ),
-        child: const Padding(
-          padding: EdgeInsets.only(left: 10),
-          child: Align(
-              alignment: Alignment.centerLeft,
-              child: AutoSizeText(
-                "Отправлять пуш уведомления",
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
-                maxLines: 1,
-                wrapWords: false,
-              )),
-        ),
-      ),
-    );
-  }
+  // SizedBox pushAlert() {
+  //   return SizedBox(
+  //     child: Container(
+  //       width: double.infinity,
+  //       height: 30,
+  //       decoration: BoxDecoration(
+  //         color: Colors.white,
+  //         borderRadius: BorderRadius.circular(6),
+  //       ),
+  //       child: const Padding(
+  //         padding: EdgeInsets.only(left: 10),
+  //         child: Align(
+  //             alignment: Alignment.centerLeft,
+  //             child: AutoSizeText(
+  //               "Отправлять пуш уведомления",
+  //               style: TextStyle(
+  //                 fontSize: 14,
+  //                 fontWeight: FontWeight.w500,
+  //               ),
+  //               maxLines: 1,
+  //               wrapWords: false,
+  //             )),
+  //       ),
+  //     ),
+  //   );
+  // }
 
   SizedBox lastNameField() {
     return SizedBox(

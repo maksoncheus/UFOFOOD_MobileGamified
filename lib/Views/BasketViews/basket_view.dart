@@ -1,9 +1,11 @@
+import 'dart:async';
+
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:sidebarx/sidebarx.dart';
 import 'package:ufo_food/helper/product_data.dart';
-import '../../Model/product.dart';
+import '../../Model/basket.dart';
 import '../../data/constants.dart';
 import '../MainViews/Components/error_state.dart';
 import '../MainViews/Components/loading_bar.dart';
@@ -18,6 +20,9 @@ class BasketView extends StatefulWidget {
 }
 
 class _BasketViewState extends State<BasketView> {
+  final productRemovedStream =
+      StreamController<BasketResponseProduct>.broadcast();
+
   List<BasketResponseProduct> addedProducts = [];
 
   getAddedProduct() async {
@@ -143,10 +148,46 @@ class _BasketViewState extends State<BasketView> {
                               addedProducts[index].decrementCount();
                             }
                           },
-                          child: const Icon(
-                            Icons.remove_circle_outline,
-                            size: 20,
-                            color: kSecondaryColor,
+                          child: GestureDetector(
+                            onTap: () {
+                              if (addedProducts[index].count > 1) {
+                                addedProducts[index].decrementCount();
+                              } else {
+                                showDialog(
+                                    context: context,
+                                    builder: (context) {
+                                      return AlertDialog(
+                                        title: const Text(
+                                            "Удалить товар из корзины?"),
+                                        actions: [
+                                          TextButton(
+                                              onPressed: () {
+                                                Navigator.of(context).pop();
+                                              },
+                                              child: const Text('Нет')),
+                                          TextButton(
+                                              onPressed: () async {
+                                                Basket basket = Basket();
+                                                await basket
+                                                    .deleteProductFromBasket(
+                                                  addedProducts[index],
+                                                );
+                                                Navigator.of(context).pop();
+                                                setState(() {
+                                                  addedProducts.removeAt(index);
+                                                });
+                                              },
+                                              child: const Text('Да'))
+                                        ],
+                                      );
+                                    });
+                              }
+                            },
+                            child: const Icon(
+                              Icons.remove_circle_outline,
+                              size: 20,
+                              color: kSecondaryColor,
+                            ),
                           ),
                         ),
                         Obx(() => AutoSizeText(

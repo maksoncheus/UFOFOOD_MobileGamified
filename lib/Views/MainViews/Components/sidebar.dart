@@ -1,6 +1,9 @@
+import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sidebarx/sidebarx.dart';
+import 'package:ufo_food/Views/GameViews/main_game.dart';
+import 'package:ufo_food/Views/PurchaseHistoryView/purchase_history.dart';
 
 import '../../../data/constants.dart';
 import '../../BasketViews/basket_view.dart';
@@ -89,18 +92,25 @@ class SideBarExample extends StatelessWidget {
                     : PhoneChecker(),
               )),
         ),
+        // SidebarXItem(
+        //   icon: Icons.history_outlined,
+        //   label: 'История заказов',
+        //   onTap: () => Navigator.push(
+        //       context,
+        //       MaterialPageRoute(
+        //         builder: (context) => isAuth == true
+        //             ? PurchaseHistoryView(
+        //                 userId: userId,
+        //               )
+        //             : PhoneChecker(),
+        //       )),
+        // ),
         SidebarXItem(
-            icon: Icons.history_outlined,
-            label: 'История заказов',
-            onTap: () => null),
-        SidebarXItem(
-            icon: Icons.notifications_outlined,
-            label: 'Уведомления',
-            onTap: () => null),
-        SidebarXItem(
-            icon: Icons.settings_outlined,
-            label: 'Настройки',
-            onTap: () => null)
+          icon: Icons.games,
+          label: "Flappy Burger",
+          onTap: () => Navigator.of(context).push(MaterialPageRoute(
+              builder: (context) => GameWidget(game: FlappyBurgerGame()))),
+        )
       ],
     );
   }

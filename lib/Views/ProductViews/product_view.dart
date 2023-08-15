@@ -9,6 +9,7 @@ import 'package:ufo_food/Views/BasketViews/basket_view.dart';
 import 'package:ufo_food/data/constants.dart';
 import 'package:ufo_food/data/size_config.dart';
 import 'package:ufo_food/helper/product_data.dart';
+import '../../Model/ingredient.dart';
 import '../MainViews/Components/loading_bar.dart';
 import '../MainViews/Components/sidebar.dart';
 import '../MainViews/Components/title_category.dart';
@@ -29,6 +30,28 @@ class _ProductViewState extends State<ProductView> {
   final _controller = SidebarXController(selectedIndex: 0, extended: true);
 
   List<IngredientResponseProduct> ingredients = [];
+  List<SelectedIngredient> selectedIngredients = [];
+
+  void __updateIngredientValue(
+      IngredientResponseProduct ingredient, int count) {
+    var found = false;
+    for (var i = 0; i < ingredients.length; i++) {
+      if (ingredients[i].title == ingredient.title) {
+        ingredients[i].ingredientCounts.value = count;
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      throw Exception("Такого ингредиента нет");
+    }
+
+    final selectedItem = selectedIngredients
+        .firstWhereOrNull((item) => item.title == ingredient.title);
+    if (selectedItem != null) {
+      selectedItem.count = count;
+    }
+  }
 
   Basket basket = Basket();
 
@@ -42,6 +65,7 @@ class _ProductViewState extends State<ProductView> {
   void initState() {
     super.initState();
     getIngredient();
+    selectedIngredients = [];
   }
 
   @override
@@ -89,7 +113,10 @@ class _ProductViewState extends State<ProductView> {
                 userId.toString(),
                 widget.product.id.toString(),
                 widget.product.price.toString(),
-                1.toString());
+                1.toString(),
+                widget.product,
+                selectedIngredients);
+
             // ignore: use_build_context_synchronously
             Navigator.push(
                 context,
@@ -148,7 +175,7 @@ class _ProductViewState extends State<ProductView> {
                                     widget.product.categoryId) {
                                   return ingridientView(index);
                                 }
-                                return null;
+                                return Container();
                               }),
                         ),
                       ],
@@ -167,16 +194,30 @@ class _ProductViewState extends State<ProductView> {
     return Stack(
       children: <Widget>[
         Container(
-          margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+          margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 20),
           child: Row(
             children: [
               Align(
                 alignment: Alignment.bottomLeft,
                 child: GestureDetector(
-                  onTap: () {
+                  onTap: () async {
                     // ignore: unrelated_type_equality_checks
-                    if (ingredients[index].ingredientCounts != 0) {
+                    // if (ingredients[index].ingredientCounts != 0) {
+                    //   ingredients[index].decrementCount();
+                    // }
+                    final selectedItem = selectedIngredients.firstWhereOrNull(
+                        (item) => item.title == ingredients[index].title);
+                    if (selectedItem != null) {
                       ingredients[index].decrementCount();
+                      selectedItem.count--;
+                      if (selectedItem.count == 0) {
+                        selectedIngredients.remove(selectedItem);
+                      }
+                    }
+                    for (final selectedItem in selectedIngredients) {
+                      final ingredient = ingredients.firstWhere(
+                          (element) => element.title == selectedItem.title);
+                      ingredient.ingredientCounts.value = selectedItem.count;
                     }
                   },
                   child: const Icon(
@@ -190,7 +231,11 @@ class _ProductViewState extends State<ProductView> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    AutoSizeText(ingredients[index].title),
+                    Expanded(
+                        child: AutoSizeText(
+                      ingredients[index].title,
+                      maxLines: 1,
+                    )),
                     Obx(() => AutoSizeText(
                         " x${ingredients[index].ingredientCounts}"))
                   ],
@@ -199,8 +244,24 @@ class _ProductViewState extends State<ProductView> {
               Align(
                 alignment: Alignment.centerRight,
                 child: GestureDetector(
-                  onTap: () {
-                    ingredients[index].incrementCount();
+                  onTap: () async {
+                    // ingredients[index].incrementCount();
+                    final selectedItem = selectedIngredients.firstWhereOrNull(
+                        (item) => item.title == ingredients[index].title);
+                    if (selectedItem != null) {
+                      ingredients[index].incrementCount();
+                      selectedItem.count++;
+                    } else {
+                      selectedIngredients.add(SelectedIngredient(
+                          ingredients[index].id,
+                          ingredients[index].title,
+                          ingredients[index].ingredientCounts.value));
+                    }
+                    for (final selectedItem in selectedIngredients) {
+                      final ingredient = ingredients.firstWhere(
+                          (element) => element.title == selectedItem.title);
+                      ingredient.ingredientCounts.value = selectedItem.count;
+                    }
                   },
                   child: const Icon(
                     Icons.add_circle_outline,

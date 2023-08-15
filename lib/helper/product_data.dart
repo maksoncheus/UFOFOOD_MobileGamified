@@ -4,6 +4,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:ufo_food/Model/product.dart';
 
+import '../Model/basket.dart';
+import '../Model/category_product.dart';
+import '../Model/check_number.dart';
+import '../Model/ingredient.dart';
+import '../Model/purchase_history.dart';
+
 class Product {
   List<ResponseProduct> datatosave = [];
 
@@ -278,8 +284,8 @@ class UpdateInfo {
 class Basket {
   List<BasketResponseProduct> addedProduct = [];
 
-  Future<void> addProduct(
-      String? userId, String menuId, String price, String count) async {
+  Future<void> addIngridientToBasket(
+      String ingridientCode, int ingridientId, int count) async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     var bearerTocken = sharedPreferences.getString('bearerTocken');
 
@@ -292,15 +298,69 @@ class Basket {
         request.headers.set('Authorization', 'Bearer $bearerTocken');
 
         var formData = {
+          'IngridientCode': ingridientCode,
+          'IngridientId': ingridientId,
+          'Count': count
+        };
+
+        var jsonRequest = json.encode({'response': formData});
+        request.add(utf8.encode(jsonRequest));
+        var response = await request.close();
+        if (response.statusCode == 200) {
+        } else {
+          throw Exception(
+              "Ошбика при попытке добавить ингредиент в корзину: ${response.statusCode}");
+        }
+      } catch (error) {
+        throw Exception("Не удалось отправить запрос: $error");
+      }
+    } else {
+      throw Exception("Токен не найден");
+    }
+  }
+
+  Future<void> addProduct(
+      String? userId,
+      String menuId,
+      String price,
+      String count,
+      ResponseProduct product,
+      List<SelectedIngredient> selectedIngredients) async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    var bearerTocken = sharedPreferences.getString('bearerTocken');
+
+    if (bearerTocken != null) {
+      var url = Uri.parse("http://89.108.77.131/api/basket/create");
+      try {
+        var httpClient = HttpClient();
+        var request = await httpClient.postUrl(url);
+        request.headers.set('Authorization', 'Bearer $bearerTocken');
+
+        List<Map<String, dynamic>> ingredientsValues = selectedIngredients
+            .map((ingredient) => ingredient.toJson())
+            .toList();
+
+        var formData = {
           'UserId': userId,
           'MenuId': menuId,
           'Price': price,
-          'Count': count
+          'Count': count,
+          'Values': [
+            {
+              "Title": product.title,
+              "Price": product.price,
+              "Count": product.productCounts,
+              "IngridientValue": ingredientsValues
+            }
+          ]
         };
 
         var jsonRequest = json.encode(formData);
         request.add(utf8.encode(jsonRequest));
         var response = await request.close();
+
+        // var jsonResponse = await response.transform(utf8.decoder).join();
+        // var data = json.decode(jsonResponse);
 
         if (response.statusCode == 200) {
         } else {
@@ -356,11 +416,10 @@ class Basket {
           for (var element in jsonData['response']) {
             int? price = int.tryParse(element['Price']);
             BasketResponseProduct products = BasketResponseProduct(
-              id: element['id'],
-              userId: element['UserId'],
-              menuId: element['MenuId'],
-              price: price,
-            );
+                id: element['id'],
+                userId: element['UserId'],
+                menuId: element['MenuId'],
+                price: price);
             await getMenuInfo(products);
             addedProduct.add(products);
           }
@@ -398,12 +457,6 @@ class Basket {
               "Title": product.title.toString(),
               "Price": product.price.toString(),
               "Count": product.count.toString(),
-              "IngridientValue": [
-                {
-                  "Title": 'Морковь',
-                  "Count": 4,
-                }
-              ]
             },
           ])
         };
@@ -424,4 +477,150 @@ class Basket {
       throw Exception("Токен не найден");
     }
   }
+
+  // Future<void> getPurchaseStory(BasketResponseProduct product) async {
+  //   SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+  //   var bearerTocken = sharedPreferences.getString('bearerTocken');
+
+  //   if (bearerTocken != null) {
+  //     var url = Uri.parse("http://89.108.77.131/api/purchases/history/create");
+  //     try {
+  //       var httpClient = HttpClient();
+  //       var request = await httpClient.postUrl(url);
+  //       request.headers.set('content-type', 'application/json');
+  //       request.headers.set('Authorization', 'Bearer $bearerTocken');
+  //       var formData = {
+  //         'UserId': product.userId.toString(),
+  //         'Price': product.price.toString(),
+  //         'Values': jsonEncode([
+  //           {
+  //             "Title": product.title.toString(),
+  //             "Price": product.price.toString(),
+  //             "Count": product.count.toString(),
+  //             "IngridientValue": {
+  //               "Title": "Бургер с укропом",
+  //               "Price": 200,
+  //               "Count": 4,
+  //               "IngridientValue": [
+  //                 {
+  //                   "Title": "Морковь",
+  //                   "Count": 4,
+  //                   "Title": "Жимолость",
+  //                   "Count": 2
+  //                 }
+  //               ]
+  //             }
+  //           },
+  //         ])
+  //       };
+
+  //       var jsonRequest = jsonEncode(formData);
+  //       request.add(utf8.encode(jsonRequest));
+
+  //       var response = await request.close();
+
+  //       if (response.statusCode == 200) {
+  //       } else {
+  //         throw Exception("что-то не так ${response.statusCode}");
+  //       }
+  //     } catch (error) {
+  //       throw Exception("Ошибка $error");
+  //     }
+  //   } else {
+  //     throw Exception("Токен не найден");
+  //   }
+  // }
+
+  Future<void> deleteProductFromBasket(BasketResponseProduct product) async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    var bearerTocken = sharedPreferences.getString('bearerTocken');
+
+    if (bearerTocken != null) {
+      var url =
+          Uri.parse('http://89.108.77.131/api/basket/delete/${product.id}');
+      try {
+        var httpClient = HttpClient();
+        var request = await httpClient.getUrl(url);
+        request.headers.set('content-type', 'application/json');
+        request.headers.set('Authorization', 'Bearer $bearerTocken');
+        var response = await request.close();
+
+        if (response.statusCode == 200) {
+        } else {
+          throw Exception("Не удалось удалить продукт: ${response.statusCode}");
+        }
+      } catch (error) {
+        throw Exception("Подключиться по адресу не удалось: $error");
+      }
+    } else {
+      throw Exception("Токен не найден");
+    }
+  }
+
+  // Future<List<PurchaseHistoryResponse>> getAllPurchaseHistory(
+  //     int? userId) async {
+  //   SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+  //   var bearerTocken = sharedPreferences.getString('bearerTocken');
+
+  //   if (bearerTocken == null) {
+  //     throw Exception('Токен не найден');
+  //   }
+
+  //   var url =
+  //       Uri.parse('http://89.108.77.131/api/purchases/history/all/$userId');
+  //   try {
+  //     final client = HttpClient();
+  //     final request = await client.getUrl(url);
+  //     request.headers.set('content-type', 'application/json');
+  //     request.headers.set('Authorization', 'Bearer $bearerTocken');
+  //     final response = await request.close();
+
+  //     if (response.statusCode == 200) {
+  //       final jsonData = jsonDecode(
+  //           await response.transform(utf8.decoder).join())['response'];
+
+  //       final result = <PurchaseHistoryResponse>[];
+  //       for (final elementList in jsonData) {
+  //         for (final element in elementList) {
+  //           final products = <PurchaseProduct>[];
+  //           final values = jsonDecode(element['Values']);
+
+  //           for (final value in values) {
+  //             final ingredientsValues = <IngredientValue>[];
+  //             final ingredientValueJson = value['IngridientValue'];
+
+  //             if (ingredientValueJson != null) {
+  //               ingredientValueJson.forEach((value) {
+  //                 final ingredientValue = IngredientValue(
+  //                     title: value['Title'], count: value['Count']);
+  //                 ingredientsValues.add(ingredientValue);
+  //               });
+  //             }
+
+  //             final product = PurchaseProduct(
+  //                 title: value['Title'],
+  //                 price: value['Price'],
+  //                 count: value['Count'],
+  //                 ingredientValues: ingredientsValues);
+  //             products.add(product);
+  //           }
+
+  //           final response = PurchaseHistoryResponse(
+  //               id: element['id'],
+  //               userId: element['UserId'],
+  //               products: products,
+  //               orderCode: element['OrderCode'],
+  //               createdAt: element['created_at']);
+  //           result.add(response);
+  //         }
+  //       }
+  //       return result;
+  //     } else {
+  //       throw Exception(
+  //           "Не удалось вывести историю заказов: ${response.statusCode}");
+  //     }
+  //   } catch (error) {
+  //     throw Exception('Не удалось подключиться по адресу: $error');
+  //   }
+  // }
 }

@@ -4,6 +4,7 @@ import 'package:sidebarx/sidebarx.dart';
 import 'package:ufo_food/Model/product.dart';
 import 'package:ufo_food/Views/MainViews/Components/product_card.dart';
 import 'package:ufo_food/helper/product_data.dart';
+import '../../Model/category_product.dart';
 import '../MainViews/Components/error_state.dart';
 import '../MainViews/Components/loading_bar.dart';
 import '../MainViews/Components/sidebar.dart';
