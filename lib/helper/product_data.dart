@@ -334,6 +334,7 @@ class Basket {
       try {
         var httpClient = HttpClient();
         var request = await httpClient.postUrl(url);
+        request.headers.set('content-type', 'application/json');
         request.headers.set('Authorization', 'Bearer $bearerTocken');
 
         List<Map<String, dynamic>> ingredientsValues = selectedIngredients
@@ -345,22 +346,19 @@ class Basket {
           'MenuId': menuId,
           'Price': price,
           'Count': count,
-          'Values': [
+          'Values': jsonEncode([
             {
               "Title": product.title,
               "Price": product.price,
               "Count": product.productCounts,
               "IngridientValue": ingredientsValues
             }
-          ]
+          ])
         };
 
         var jsonRequest = json.encode(formData);
         request.add(utf8.encode(jsonRequest));
         var response = await request.close();
-
-        // var jsonResponse = await response.transform(utf8.decoder).join();
-        // var data = json.decode(jsonResponse);
 
         if (response.statusCode == 200) {
         } else {
