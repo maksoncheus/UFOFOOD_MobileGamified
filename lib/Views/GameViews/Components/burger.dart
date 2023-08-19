@@ -12,7 +12,7 @@ class Burger extends SpriteComponent
     with HasGameRef<FlappyBurgerGame>, CollisionCallbacks {
   Burger();
 
-  late GameOver _gameOver;
+  // late GameOver _gameOver;
 
   final velocity = 250; // скорость объекта
 
@@ -25,7 +25,7 @@ class Burger extends SpriteComponent
 
     add(CircleHitbox());
 
-    _gameOver = GameOver();
+    // _gameOver = GameOver();
   }
 
   @override
@@ -34,13 +34,13 @@ class Burger extends SpriteComponent
     position.y += velocity * dt; // обновление кадра его перемещения
   }
 
-  @override
-  void render(Canvas canvas) {
-    super.render(canvas);
-    if (gameRef.paused) {
-      _gameOver.render(canvas);
-    }
-  }
+  // @override
+  // void render(Canvas canvas) {
+  //   super.render(canvas);
+  //   if (gameRef.paused) {
+  //     _gameOver.render(canvas);
+  //   }
+  // }
 
   void fly() {
     add(MoveByEffect(Vector2(0, -100),

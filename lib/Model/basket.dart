@@ -1,4 +1,7 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:get/get.dart';
+
+import 'ingredient.dart';
 
 class BasketResponseProduct extends GetxController {
   int id;
@@ -7,6 +10,7 @@ class BasketResponseProduct extends GetxController {
   int? price;
   var count = 1.obs;
   late String title;
+  late List<SelectedIngredient> ingredients;
   late String image;
   BasketResponseProduct({
     required this.id,

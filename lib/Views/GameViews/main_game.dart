@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
 import 'package:ufo_food/Views/GameViews/Components/background.dart';
@@ -11,6 +13,7 @@ class FlappyBurgerGame extends FlameGame
   FlappyBurgerGame();
 
   late Burger _burger;
+  late GameOver _over;
 
   double get speed => 400;
   double _timeSinceLastPipeGroup = 0;
@@ -21,8 +24,10 @@ class FlappyBurgerGame extends FlameGame
       Background(),
       Ground(),
       _burger = Burger(),
+      _over = GameOver(),
       PipeGroup(),
     ]);
+    _over = GameOver();
   }
 
   @override
@@ -35,7 +40,7 @@ class FlappyBurgerGame extends FlameGame
   void update(double dt) {
     super.update(dt);
     _timeSinceLastPipeGroup += dt;
-    if (_timeSinceLastPipeGroup > 2) {
+    if (_timeSinceLastPipeGroup > 1.5) {
       add(PipeGroup());
       _timeSinceLastPipeGroup = 0;
     }
@@ -52,5 +57,13 @@ class FlappyBurgerGame extends FlameGame
       _burger = Burger(),
     ]);
     resumeEngine();
+  }
+
+  @override
+  void render(Canvas canvas) {
+    super.render(canvas);
+    if (paused) {
+      _over.render(canvas);
+    }
   }
 }

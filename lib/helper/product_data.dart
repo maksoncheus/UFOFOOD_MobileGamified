@@ -284,41 +284,6 @@ class UpdateInfo {
 class Basket {
   List<BasketResponseProduct> addedProduct = [];
 
-  Future<void> addIngridientToBasket(
-      String ingridientCode, int ingridientId, int count) async {
-    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-    var bearerTocken = sharedPreferences.getString('bearerTocken');
-
-    if (bearerTocken != null) {
-      var url = Uri.parse("http://89.108.77.131/api/basket/create");
-      try {
-        var httpClient = HttpClient();
-        var request = await httpClient.postUrl(url);
-        request.headers.set('content-type', 'application/json');
-        request.headers.set('Authorization', 'Bearer $bearerTocken');
-
-        var formData = {
-          'IngridientCode': ingridientCode,
-          'IngridientId': ingridientId,
-          'Count': count
-        };
-
-        var jsonRequest = json.encode({'response': formData});
-        request.add(utf8.encode(jsonRequest));
-        var response = await request.close();
-        if (response.statusCode == 200) {
-        } else {
-          throw Exception(
-              "Ошбика при попытке добавить ингредиент в корзину: ${response.statusCode}");
-        }
-      } catch (error) {
-        throw Exception("Не удалось отправить запрос: $error");
-      }
-    } else {
-      throw Exception("Токен не найден");
-    }
-  }
-
   Future<void> addProduct(
       String? userId,
       String menuId,
@@ -393,6 +358,7 @@ class Basket {
     }
   }
 
+  
   Future<void> getAddedProduct() async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     var bearerTocken = sharedPreferences.getString('bearerTocken');
@@ -413,12 +379,27 @@ class Basket {
         if (response.statusCode == 200) {
           for (var element in jsonData['response']) {
             int? price = int.tryParse(element['Price']);
+
+            var value = jsonDecode(element['Values']);
+            List<SelectedIngredient> ingredients = [];
+            var ingredient = value[0]['IngridientValue'];
+
+            for (var item in ingredient) {
+              var id = item['id'];
+              var title = item['title'];
+              var count = item['count'];
+              SelectedIngredient selectedIngredient =
+                  SelectedIngredient(id, title, count);
+              ingredients.add(selectedIngredient);
+            }
+
             BasketResponseProduct products = BasketResponseProduct(
                 id: element['id'],
                 userId: element['UserId'],
                 menuId: element['MenuId'],
                 price: price);
             await getMenuInfo(products);
+            products.ingredients = ingredients;
             addedProduct.add(products);
           }
         } else {
@@ -434,7 +415,7 @@ class Basket {
   }
 
   Future<void> getPurchaseStory(BasketResponseProduct product) async {
-    var orderCode = 9993;
+    String status = "Заказ готовится";
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     var bearerTocken = sharedPreferences.getString('bearerTocken');
 
@@ -448,13 +429,19 @@ class Basket {
 
         var formData = {
           'UserId': product.userId.toString(),
-          'OrderCode': orderCode.toString(),
+          'Status': status,
           'Price': product.price.toString(),
           'Values': jsonEncode([
             {
               "Title": product.title.toString(),
               "Price": product.price.toString(),
               "Count": product.count.toString(),
+              "IngridientValue": product.ingredients
+                  .map((ingredient) => {
+                        "Title": ingredient.title,
+                        "Count": ingredient.count,
+                      })
+                  .toList()
             },
           ])
         };
