@@ -92,19 +92,19 @@ class SideBarExample extends StatelessWidget {
                     : PhoneChecker(),
               )),
         ),
-        // SidebarXItem(
-        //   icon: Icons.history_outlined,
-        //   label: 'История заказов',
-        //   onTap: () => Navigator.push(
-        //       context,
-        //       MaterialPageRoute(
-        //         builder: (context) => isAuth == true
-        //             ? PurchaseHistoryView(
-        //                 userId: userId,
-        //               )
-        //             : PhoneChecker(),
-        //       )),
-        // ),
+        SidebarXItem(
+          icon: Icons.history_outlined,
+          label: 'История заказов',
+          onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => isAuth == true
+                    ? PurchaseHistoryView(
+                        userId: userId,
+                      )
+                    : PhoneChecker(),
+              )),
+        ),
         SidebarXItem(
           icon: Icons.games,
           label: "Flappy Burger",

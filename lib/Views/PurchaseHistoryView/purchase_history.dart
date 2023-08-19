@@ -27,7 +27,7 @@ class _PurchaseHistoryViewState extends State<PurchaseHistoryView> {
   @override
   void initState() {
     super.initState();
-    // _futurePurchaseHistory = basket.getAllPurchaseHistory(widget.userId);
+    _futurePurchaseHistory = basket.getAllPurchaseHistory(widget.userId);
   }
 
   @override
@@ -79,7 +79,7 @@ class _PurchaseHistoryViewState extends State<PurchaseHistoryView> {
                                     borderRadius: BorderRadius.circular(6)),
                                 child: ListTile(
                                   title: AutoSizeText(
-                                    'код заказа: ${purchase.orderCode}',
+                                    'Статус заказа: ${purchase.status}',
                                     style:
                                         const TextStyle(color: kSecondaryColor),
                                   ),

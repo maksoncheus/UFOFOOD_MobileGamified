@@ -7,7 +7,7 @@ class BasketResponseProduct extends GetxController {
   int id;
   int userId;
   int menuId;
-  int? price;
+  int price;
   var count = 1.obs;
   late String title;
   late List<SelectedIngredient> ingredients;
@@ -21,9 +21,11 @@ class BasketResponseProduct extends GetxController {
 
   void incrementCount() {
     count.value++;
+    price++;
   }
 
   void decrementCount() {
     count.value--;
+    price--;
   }
 }

@@ -24,6 +24,7 @@ class _BasketViewState extends State<BasketView> {
       StreamController<BasketResponseProduct>.broadcast();
 
   List<BasketResponseProduct> addedProducts = [];
+  double totalCost = 0;
 
   getAddedProduct() async {
     Basket basket = Basket();
@@ -83,8 +84,8 @@ class _BasketViewState extends State<BasketView> {
                                   const EdgeInsets.symmetric(horizontal: 10),
                               child: Row(
                                 children: [
-                                  const AutoSizeText(
-                                    "К оплате: ",
+                                  AutoSizeText(
+                                    "Оплата",
                                     maxLines: 1,
                                   ),
                                   const Spacer(),
@@ -101,7 +102,7 @@ class _BasketViewState extends State<BasketView> {
                                               "Произошла ошибка при выполнении запроса $error");
                                         }
                                       },
-                                      child: const Text("Нажми меня"))
+                                      child: const Text("Оплатить"))
                                 ],
                               ),
                             ),
@@ -120,8 +121,11 @@ class _BasketViewState extends State<BasketView> {
   }
 
   ListView basketListView(int? userId) {
+    final products = addedProducts
+        .where((product) => product.userId == widget.userId)
+        .toList();
     return ListView.builder(
-        itemCount: addedProducts.length,
+        itemCount: products.length,
         itemBuilder: (context, index) {
           if (addedProducts[index].userId == userId) {
             return SingleChildScrollView(
@@ -134,7 +138,7 @@ class _BasketViewState extends State<BasketView> {
                     borderRadius: BorderRadius.circular(6)),
                 child: ListTile(
                     title: AutoSizeText(
-                      addedProducts[index].title,
+                      products[index].title,
                       maxLines: 1,
                     ),
                     leading: const Image(
@@ -144,14 +148,16 @@ class _BasketViewState extends State<BasketView> {
                       children: [
                         GestureDetector(
                           onTap: () {
-                            if (addedProducts[index].count.value != 0) {
-                              addedProducts[index].decrementCount();
+                            if (products[index].count.value != 0) {
+                              products[index].decrementCount();
+                              totalCost -= products[index].price ?? 0;
                             }
                           },
                           child: GestureDetector(
                             onTap: () {
-                              if (addedProducts[index].count > 1) {
-                                addedProducts[index].decrementCount();
+                              if (products[index].count > 1) {
+                                products[index].decrementCount();
+                                totalCost -= products[index].price ?? 0;
                               } else {
                                 showDialog(
                                     context: context,
@@ -170,11 +176,23 @@ class _BasketViewState extends State<BasketView> {
                                                 Basket basket = Basket();
                                                 await basket
                                                     .deleteProductFromBasket(
-                                                  addedProducts[index],
+                                                  products[index],
                                                 );
                                                 Navigator.of(context).pop();
+                                                totalCost =
+                                                    addedProducts.fold<double>(
+                                                        0,
+                                                        (sum, product) =>
+                                                            sum +
+                                                            (product.price ??
+                                                                    0) *
+                                                                product.count
+                                                                    .value);
                                                 setState(() {
-                                                  addedProducts.removeAt(index);
+                                                  addedProducts.removeWhere(
+                                                      (product) =>
+                                                          product.id ==
+                                                          products[index].id);
                                                 });
                                               },
                                               child: const Text('Да'))
@@ -191,10 +209,16 @@ class _BasketViewState extends State<BasketView> {
                           ),
                         ),
                         Obx(() => AutoSizeText(
-                            addedProducts[index].count.value.toString())),
+                            products[index].count.value.toString())),
                         GestureDetector(
                           onTap: () {
-                            addedProducts[index].incrementCount();
+                            products[index].incrementCount();
+                            totalCost = addedProducts.fold<double>(
+                                0.0,
+                                (previous, current) =>
+                                    previous +
+                                    ((current.price ?? 0) *
+                                        current.count.value));
                           },
                           child: const Icon(
                             Icons.add_circle_outline,
@@ -205,7 +229,7 @@ class _BasketViewState extends State<BasketView> {
                       ],
                     ),
                     subtitle: Text(
-                      "${addedProducts[index].price} р",
+                      "${products[index].price} р",
                       style: const TextStyle(color: kSecondaryColor),
                     )),
               ),

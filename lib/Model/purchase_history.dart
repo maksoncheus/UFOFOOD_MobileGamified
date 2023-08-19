@@ -15,13 +15,13 @@ class PurchaseHistoryResponse {
   int id;
   int userId;
   List<PurchaseProduct> products;
-  String orderCode;
+  String status;
   String createdAt;
   PurchaseHistoryResponse({
     required this.id,
     required this.userId,
     required this.products,
-    required this.orderCode,
+    required this.status,
     required this.createdAt,
   });
 }
